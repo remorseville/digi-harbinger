@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: SSMClientToolsSetup@1
+- task: SSMSigningToolsSetup@1
+- task: DownloadSecureFile@1
+  name: SM_CLIENT_CERT_FILE
+  inputs:
+    secureFile: cert.p12
+
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      smctl healthcheck
+      smctl windows certsync
+      "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe" "D:\a\1\s\ModernWPF.sln" /p:PublishProfile="D:\a\1\s\MahApps.PrismLibrary.Metro\Properties\PublishProfiles\ClickOnceProfile.pubxml"
+      signtool verify /v /pa "D:\a\1\s\MahApps.PrismLibrary.Metro\bin\Release\net6.0-windows\app.publish\Launcher.exe"
+    
+  env:
+    "SM_HOST": '%SM_HOST%'
+    "SM_API_KEY": '%SM_API_KEY%'
+    "SM_CLIENT_CERT_PASSWORD": '%SM_CLIENT_CERT_PASSWORD%'
+    "SM_CLIENT_CERT_FILE": '$(SM_CLIENT_CERT_FILE.secureFilePath)'
+
+
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
