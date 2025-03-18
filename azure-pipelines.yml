@@ -24,7 +24,7 @@ steps:
     script: |
       smctl healthcheck
       pip install -r requirements.txt
-
+      pyinstaller server.spec
     
   env:
     "SM_HOST": '%SM_HOST%'
