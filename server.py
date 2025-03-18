@@ -86,7 +86,7 @@ async def report():
         # "MODE" CHECK - USED FOR CALLING THE CERTCENTRAL USA API VS. CERTCENTRAL EU API (BASE_URL)
         mode = request.args.get('us_mode') # CHECKS FOR POST ARGUMENT BOOLEAN
         env_vars = dotenv_values(ENV_FILE) # LOAD .env FILE
-        env_vars["MODE"] = mode            # SETS "MODE" VARIABLE AND WRITES TO FILE 
+        env_vars["US_MODE"] = mode            # SETS "MODE" VARIABLE AND WRITES TO FILE 
         for key, value in env_vars.items():
             set_key(ENV_FILE, key, value)
 
@@ -303,7 +303,7 @@ def on_boot():
         os.makedirs(APP_DIRECTORY, exist_ok=True)
         if not os.path.exists(ENV_FILE):
             with open(ENV_FILE, "w") as f:
-                f.write("MODE='true'\n")
+                f.write("US_MODE='true'\n")
                 f.write("DIGICERT_API_KEY_US=''\n")
                 f.write("DIGICERT_API_KEY_EU=''\n")
                 f.write("DIGICERT_BASE_URL_US='https://www.digicert.com/services/v2'\n")
