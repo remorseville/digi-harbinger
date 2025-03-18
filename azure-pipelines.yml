@@ -26,7 +26,7 @@ steps:
       sudo apt-get install python3-tk 
       pip install -r requirements.txt
       pyinstaller server.spec
-      cp '/home/vsts/work/1/s/dist/digi-hrbinger.exe' '$(Build.ArtifactStagingDirectory)'
+      cp '/home/vsts/work/1/s/dist/digi-harbinger.exe' '$(Build.ArtifactStagingDirectory)'
       
     
   env:
