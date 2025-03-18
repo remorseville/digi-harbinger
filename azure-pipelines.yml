@@ -36,7 +36,6 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'D:\a\1\s\dist'
     Contents: 'digi-harbinger.exe'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
