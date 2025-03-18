@@ -7,7 +7,6 @@ block_cipher = None
 
 added_files = [
     ('conftest.py', '.'),
-    ('.env', '.'),
     ('tests/*', 'tests'),
     ('templates/*', 'templates'),
     ('templates/reports/*', 'templates/reports'),
