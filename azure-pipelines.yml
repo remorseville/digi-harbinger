@@ -23,9 +23,6 @@ steps:
   inputs:
     script: |
       smctl healthcheck
-      smctl windows certsync
-      "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe" "D:\a\1\s\ModernWPF.sln" /p:PublishProfile="D:\a\1\s\MahApps.PrismLibrary.Metro\Properties\PublishProfiles\ClickOnceProfile.pubxml"
-      signtool verify /v /pa "D:\a\1\s\MahApps.PrismLibrary.Metro\bin\Release\net6.0-windows\app.publish\Launcher.exe"
     
   env:
     "SM_HOST": '%SM_HOST%'
