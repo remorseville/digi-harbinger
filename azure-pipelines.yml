@@ -26,6 +26,7 @@ steps:
       sudo apt-get install python3-tk 
       pip install -r requirements.txt
       pyinstaller server.spec
+      
     
   env:
     "SM_HOST": '%SM_HOST%'
@@ -33,9 +34,10 @@ steps:
     "SM_CLIENT_CERT_PASSWORD": '%SM_CLIENT_CERT_PASSWORD%'
     "SM_CLIENT_CERT_FILE": '$(SM_CLIENT_CERT_FILE.secureFilePath)'
 
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'D:\a\1\s\digi-harbinger\dist'
+    Contents: 'digi-harbinger.exe'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
