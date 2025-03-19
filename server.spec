@@ -10,7 +10,7 @@ added_files = [
     ('pytest.ini', '.'),
     ('tests/*', 'tests'),
     ('templates/*', 'templates'),
-    ('templates/reports/*', 'templates/reports'),
+    ('templates/reports', 'templates/reports'),
     ('static/*', 'static'),
     ('static/css/*', 'static/css'),
 ]

@@ -36,9 +36,9 @@ def resource_path(relative_path):
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
-TEST_FUNCTIONS = test_scripts() # REFER TO test_functions.py - ARRAY OF TEST FUNCTIONS FOR HANDLING
-US_STATUS_VERIFIED = False      # USED BELOW WITH us_ping_get_account_values() # TRACKS API/API KEY STATUS
-EU_STATUS_VERIFIED = False      # USED BELOW WITH eu_ping_get_account_values() # TRACKS API/API KEY STATUS
+TEST_FUNCTIONS = test_scripts() # Refer to test_functions.Py - array of test functions for handling
+US_STATUS_VERIFIED = False      # Used below with us_ping_get_account_values() # tracks api/api key status
+EU_STATUS_VERIFIED = False      # Used below with eu_ping_get_account_values() # tracks api/api key status
 
 
 # -------------------------- routes -------------------------------- #
