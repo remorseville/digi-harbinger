@@ -62,8 +62,8 @@ pyz = PYZ(a.pure)
 splash = Splash('logo.png',
                 binaries=a.binaries,
                 datas=a.datas,
-                text_pos=(10, 50),
-                text_size=12,
+                text_pos=(10, 0),
+                text_size=8,
                 text_color='black')
 
 exe = EXE(

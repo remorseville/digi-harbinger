@@ -5,14 +5,14 @@ import os
 import sys
 
 
-# GLOBALS
+# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
 ENV_VARS = dotenv_values(ENV_FILE)
 
 
-# DYNAMIC PATH HANDLING (PACKAGED VS DEV)
+# dynamic path handling (packaged vs dev)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -21,7 +21,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# REQUEST HELPER FUNCTION
+# request helper function
 def make_request(method, endpoint, payload=None):
     if ENV_VARS["US_MODE"] == "true":
         base_url = ENV_VARS["DIGICERT_BASE_URL_US"]
@@ -55,7 +55,7 @@ def find_cert_id():
                 return cert_id
 
 
-# DOWNLOAD CERT FORMAT
+# download cert format
 def download_certificate(cert_id_for_downloads, cert_format):
     cert_id = cert_id_for_downloads
 
@@ -100,7 +100,7 @@ def restore_certificate():  # TODO
     return
 
 
-# DOWNLOAD TESTS
+# download tests
 def test_download_certificate_default_pem(cert_id_for_downloads):
     download_certificate(cert_id_for_downloads, "default_pem")
 

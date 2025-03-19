@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 import time
+import ctypes
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
@@ -12,7 +13,7 @@ import importlib
 
 from flaskwebgui import FlaskUI  # TODO used for when changed to UI vs Browser
 
-# LOCAL IMPORTS
+# local imports
 from conftest import process_defined_tests
 from tests.test_functions import test_scripts
 from tests import crypto
@@ -22,7 +23,7 @@ app = Flask(__name__)
 ui = FlaskUI(app, width=500, height=500) # TODO used for when changed to UI vs Browser
 
 
-# DYNAMIC PATH HANDLING (PACKAGED VS DEV)
+# dynamic path handling (packaged vs dev)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -31,7 +32,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# GLOBALS
+# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
@@ -40,24 +41,24 @@ US_STATUS_VERIFIED = False      # USED BELOW WITH us_ping_get_account_values() #
 EU_STATUS_VERIFIED = False      # USED BELOW WITH eu_ping_get_account_values() # TRACKS API/API KEY STATUS
 
 
-# -------------------------- ROUTES -------------------------------- #
+# -------------------------- routes -------------------------------- #
 
-# HOMEPAGE
+# homepage
 @app.route('/', methods=['GET', 'POST'])
 async def index():
 
-    # PRETTY PRINT HANDLING FOR SCRIPT FILENAMES/FUNCTIONS
+    # pretty print handling for script filenames/functions
     test_functions_cleaned = {
-        key: [test.split("::")[1] for test in tests]    # REMOVE FILE PATHS
+        key: [test.split("::")[1] for test in tests]    # remove file paths
         for key, tests in TEST_FUNCTIONS.items()
     }
 
-    # CHECK FOR ORG ID US
-    org_ids = await us_ping_get_account_values()        # THIS IS ALSO AN ACCOUNT PING/STATUS CHECK
+    # US org is check / account ping
+    org_ids = await us_ping_get_account_values()        
     org_ids = org_ids if org_ids is not None else []
 
-    # CHECK FOR ORG ID EU
-    eu_org_ids = await eu_ping_get_account_values()     # THIS IS ALSO AN ACCOUNT PING/STATUS CHECK
+    # EU org id check - account ping
+    eu_org_ids = await eu_ping_get_account_values()    
     eu_org_ids = eu_org_ids if eu_org_ids is not None else []
 
     return render_template("index.html", 
@@ -70,7 +71,7 @@ async def index():
                            )
 
 
-# ACCOUNT/ORG PING CHECK
+# account/org ping check
 @app.route('/verify', methods=['GET'])
 async def verification_status():
     data = await us_ping_get_account_values()
@@ -78,42 +79,42 @@ async def verification_status():
     return data
 
 
-# GENERATED REPORT ENDPOINT
+# generated report endpoing
 @app.route('/report', methods=['GET', 'POST'])
 async def report():
     if request.method == 'POST':
         
-        # "MODE" CHECK - USED FOR CALLING THE CERTCENTRAL USA API VS. CERTCENTRAL EU API (BASE_URL)
-        mode = request.args.get('us_mode') # CHECKS FOR POST ARGUMENT BOOLEAN
-        env_vars = dotenv_values(ENV_FILE) # LOAD .env FILE
-        env_vars["US_MODE"] = mode            # SETS "MODE" VARIABLE AND WRITES TO FILE 
+        # "Mode" check - used for calling the certcentral usa api vs. Certcentral eu api (base_url)
+        mode = request.args.get('us_mode') # checks for post argument boolean
+        env_vars = dotenv_values(ENV_FILE) 
+        env_vars["US_MODE"] = mode           
         for key, value in env_vars.items():
             set_key(ENV_FILE, key, value)
 
-        # PROCESSING OF CHOSEN TESTS IN THE POST REQUEST
+        # processing of chosen tests in the post request
         selected_tests = request.json.get('selected_tests', [])
         if not selected_tests:
             return jsonify({"error": "No tests selected"}), 400
 
-        full_selected_tests = []                   # FINAL ARRAY
-        for key, tests in TEST_FUNCTIONS.items():  # GLOBAL TEST_FUNCTIONS
+        full_selected_tests = []                   # final array
+        for key, tests in TEST_FUNCTIONS.items():  # global TEST_FUNCTIONS
             for test in tests:
-                test_name = test.split("::")[1]    # EXTRACT TEST NAME
+                test_name = test.split("::")[1]    # extract test names
                 if test_name in selected_tests:
                     full_selected_tests.append(test)
 
 
-        await process_defined_tests(full_selected_tests)  # CONFTEST.PY
+        await process_defined_tests(full_selected_tests)  # conftest.py
 
-        # DATE/TIME HANDLING FOR REPORT FILENAMES - APPENDS TO "report_****.html"
+        # date/time handling for report filenames - appends to "Report_****.Html"
         now = datetime.now() 
         formatted_time = now.strftime("%Y%m%d%H%M%S")
         source = resource_path('./templates/report.html')
         destination = resource_path(f'./templates/reports/report_{formatted_time}.html')
 
         try:
-            os.makedirs(os.path.dirname(destination), exist_ok=True)  # CREATES THE "templates/reports" DIRECTORY  
-            shutil.copy2(source, destination)                         # COPIES GENERATED "report.html" TO "templates/reports"
+            os.makedirs(os.path.dirname(destination), exist_ok=True)  # creates the "Templates/reports" directory  
+            shutil.copy2(source, destination)                         # copies generated "Report.Html" to "Templates/reports"
             print(f"File copied from {source} to {destination}")
         except FileNotFoundError:
             print(f"Source file {source} not found.")
@@ -122,18 +123,18 @@ async def report():
         except Exception as e:
             print(f"An error occurred: {e}")
 
-        return render_template("report.html")  # RETUNRS THE GENERATED REPORT (OR LAST SAVED "report.html" ON ANY FAILURE)
+        return render_template("report.html")  # retunrs the generated report (or last saved "Report.Html" on any failure)
     else:
 
-        # GET REQUEST HANDLING - USED FOR OLDER REPORT VIEW
-        arg = request.args.get('id')                        # PASSED URL PARAMETER "id"
+        # get request handling - used for older report view
+        arg = request.args.get('id')                        # get request handling - used for older report view
         if arg:
-            return render_template(f"/reports/{arg}.html")  # IF PASSED, GENERATE (OLDER) REPORT
+            return render_template(f"/reports/{arg}.html")  # if passed, generate (older) report
         else:
             return render_template("report.html")
 
 
-# ENV VARIABLE FORM ENDPOINT
+# env variable form endpoint
 @app.route('/submit_', methods=['POST'])
 def submit_env_variables():
     env_vars = dotenv_values(ENV_FILE)
@@ -141,7 +142,7 @@ def submit_env_variables():
     data = request.json
 
     if arg == "api_key_us":
-        # UPDATE ENV VARIABLES
+        # update env variables
         # env_vars["ORG_ID"] = data.get('org_id') TODO remove?
         env_vars["DIGICERT_API_KEY_US"] = data.get('api_key')
         for key, value in env_vars.items():
@@ -150,7 +151,7 @@ def submit_env_variables():
         return jsonify({"message": "Key received successfully!"})
 
     elif arg == "api_key_eu":
-        # UPDATE ENV VARIABLES
+        # update env variables
         # env_vars["ORG_ID"] = data.get('org_id') TODO remove?
         env_vars["DIGICERT_API_KEY_EU"] = data.get('api_key')
         for key, value in env_vars.items():
@@ -159,11 +160,11 @@ def submit_env_variables():
         return jsonify({"message": "Key received successfully!"})
 
 
-# DIRECTORY OF PAST GENERATED REPORTS - ONCE PACKAGED, THEY WILL ONLY PERSIST PER SESSION
+# Directory of past generated reports - once packaged, they will only persist per session
 @app.route('/list-directory')
 def list_directory():
     directory_path = resource_path('./templates/reports')
-    # LIST ALL FILES IN PATH
+    # list all files in path
     try:
         files = [os.path.splitext(f)[0] for f in os.listdir(directory_path) if f.endswith('.html')]
     except FileNotFoundError:
@@ -172,21 +173,21 @@ def list_directory():
     return jsonify({"files": files, "directory": directory_path})
 
 
-# CUSTOM STATIC DIRECTORY FOR REPORT HANDLING - HTML
+# custom static directory for report handling - html
 @app.route('/reports/<filename>')
 def custom_static(filename):
     directory_path = resource_path('./reports')
     return send_from_directory(directory_path, filename)
 
 
-# CUSTOM STATIC DIRECTORY FOR REPORT HANDLING - CSS/JAVASCRIPT
+# custom static directory for report handling - css/javascript
 @app.route('/c_static/<filename>')
 def custom_static_js_css(filename):
     directory_path = resource_path('./static')
     return send_from_directory(directory_path, filename)
 
 
-# ENDPOINT FOR GENERATING PRIVATE KEY/CSR FOR USER
+# endpoint for generating private key/csr for user
 @app.route('/keypair')
 def gen_keypair():
     key = crypto.generate_private_key_tab()
@@ -194,12 +195,12 @@ def gen_keypair():
     keypair = json.loads(csr)
     return jsonify({"csr": keypair["csr"], "key": keypair["key"]})
 
-# -------------------------- END ROUTES -------------------------------- #
+# -------------------------- end routes -------------------------------- #
 
 
-# -------------------------- FUNCTIONS -------------------------------- #
+# -------------------------- functions -------------------------------- #
 
-# DEFAULT REQUEST HELPER
+# default request helper
 def make_request(method, base_url, endpoint, headers, payload=None):
     url = f"{base_url}/{endpoint}"
     response = requests.request(method, url, headers=headers, json=payload)
@@ -294,9 +295,9 @@ async def eu_ping_get_account_values():
         EU_STATUS_VERIFIED = False
         return
 
-# -------------------------- END FUNCTIONS -------------------------------- #
+# -------------------------- end functions -------------------------------- #
 
-# WHEN THE APP IS RAN, THIS GENERATES/CHECKS FOR THE ".env" FILE. STORED AT "C:\Users\$USER\AppData\Local\Digi-Harbinger\.env
+# when the app is ran, this generates/checks for the ".Env" file. Stored at "C:\users\$user\appdata\local\digi-harbinger\.Env
 def on_boot():
     
     try:
@@ -317,7 +318,15 @@ def on_boot():
         print(f"An error occurred: {e}")
 
 
-# SEPERATE FLASK FUNCTION SO WAITRESS CAN BE USED (PERFORMANCE)
+
+def user_screen_size():
+    user32 = ctypes.windll.user32
+    screensize = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+    return screensize
+
+
+
+# seperate flask function so waitress can be used (performance)
 def start_flask(**server_kwargs):
     
     on_boot()
@@ -333,12 +342,16 @@ def start_flask(**server_kwargs):
 
 if __name__ == "__main__":
     
-    # ON CLOSE FUNCTION
+    # on close function
     def saybye():
         print("on_exit bye")
+    
+    screen_dimensions = user_screen_size()
+    x = (screen_dimensions[0] / 2) - 475
+    y = (screen_dimensions[1] / 2) - 475
 
     if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
-        import pyi_splash  # THIS IMPORT ERROR IS OKAY - IT'S A PYTEST PLUGIN
+        import pyi_splash  # this import error is okay - it's a pytest plugin
         pyi_splash.update_text('UI Loaded ...')
         time.sleep(2)
         pyi_splash.close()
@@ -350,15 +363,13 @@ if __name__ == "__main__":
             "app": app,
             "port": 5444,
         },
-        width=1500,
-        height=1100,
+        width=950,
+        height=950,
         browser_path='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        extra_flags = [f"--window-position={int(x)},{int(y)}"],
         on_shutdown=saybye,
     ).run()
 
 
 # TODO REMOVE
     #app.run(host='127.0.0.1', debug=True)
-    #start_flaskwebgui()
-
-    #pytest --html=\Users\ben.morse\PycharmProjects\DIGI-TEST-MAR15\templates\report.html --css=custom.css --self-contained-html .\account.py

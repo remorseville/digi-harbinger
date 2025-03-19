@@ -3,7 +3,7 @@ import asyncio
 import os
 import sys
 
-# LOCAL IMPORTS
+# local imports
 from tests.crypto import generate_csr, generate_private_key
 from tests.certificates import find_cert_id
 
@@ -16,7 +16,7 @@ def resource_path(relative_path):
     return os.path.normpath(os.path.join(base_path, relative_path))
 
 
-pytest_plugins = ('pytest_asyncio', 'pytest_html')
+pytest_plugins = ('pytest_asyncio')
 
 
 @pytest.fixture(scope="module")
@@ -55,35 +55,35 @@ def us_mode():
 
 def run_pytest(selected_tests):
 
-    # RESOURSE PATH CONVERSION
+    # resource path conversion
     resolved_tests = []
     for test in selected_tests:
-        # SPLIT PATH AND TEST NAME (e.g., "./tests/account.py::test_account_details")
+        # split path and test name (e.G., "./tests/account.Py::test_account_details")
         path, *test_name = test.split("::")
         resolved_path = resource_path(path)
-        # RECONSTRUCT
+        # reconstruct 
         if test_name:
             resolved_test = f"{resolved_path}::{'::'.join(test_name)}"
         else:
             resolved_test = resolved_path
         resolved_tests.append(resolved_test)
 
-    original_argv = sys.argv # SAVE ANY CURRENT SYS.ARGV
+    original_argv = sys.argv # save any current sys.Argv
     
 
-    # REPLACE sys.argv WITH PYTEST ARGUMENTS 
+    # replace sys.Argv with pytest arguments 
     sys.argv = [
-        "pytest",  # PYTEST COMMAND
+        "pytest",  # pytest command
         f"--html={resource_path('./templates/report.html')}",
         f"--css={resource_path('./static/css/custom.css')}",
         "--self-contained-html"
     ] + resolved_tests
 
     try:
-        # RUN PYTEST
+        # run pytest
         pytest.main(plugins=['pytest_html'])
     finally:
-        # RESTORE ORIGINAL sys.argv
+        # restore original sys.Argv
         sys.argv = original_argv
 
 @pytest.mark.asyncio

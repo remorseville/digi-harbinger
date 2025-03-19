@@ -5,14 +5,14 @@ import os
 import sys
 
 
-# GLOBALS
+# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
 ENV_VARS = dotenv_values(ENV_FILE)
 
 
-# DYNAMIC PATH HANDLING (PACKAGED VS DEV)
+# dynamic path handling (packaged vs dev)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -21,7 +21,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# REQUEST HELPER FUNCTION
+# request helper function
 def make_request(method, endpoint, payload=None):
     if ENV_VARS["US_MODE"] == "true":
         base_url = ENV_VARS["DIGICERT_BASE_URL_US"]
@@ -50,7 +50,7 @@ def test_list_orders():
 
 
 def test_order_validation_status():
-    order_id = 1193139621  # ORDER NEEDS TO BE PENDING
+    order_id = 1193139621  # order needs to be pending 
     # TODO Convert this one where it finds a pending request? Maybe submit a pending request?
     endpoint = f"order/certificate/{order_id}/validation"
     response = make_request("GET", endpoint)
@@ -59,7 +59,7 @@ def test_order_validation_status():
     assert response.status_code == 200
 
 
-# ORDER FUNCTIONS
+# order functions
 def ov_certificate(generate_keypair, ov_product_identifier):
 
     endpoint = f"order/certificate/{ov_product_identifier}"

@@ -1,7 +1,7 @@
 
 
 
-// Add an event listener to the button
+/* ---------- Keypair Gen Handling  ---------- */
 document.getElementById('gen_keypair_button').addEventListener('click', function() {
     // Fetch data from the Flask endpoint
     fetch('/keypair')
@@ -18,7 +18,7 @@ document.getElementById('gen_keypair_button').addEventListener('click', function
         });
         });
 
-/* ---------- DATA SUBMISSION HANDLER ---------- */
+/* ---------- Data Submission Handling ---------- */
 document.getElementById('api_key_us_form').addEventListener('submit', function(event) {
 	event.preventDefault();
 
@@ -53,10 +53,10 @@ document.getElementById('api_key_us_form').addEventListener('submit', function(e
 document.getElementById('api_key_eu_form').addEventListener('submit', function(event) {
 	event.preventDefault();
 
-	// GET FORM DATA
+	// Get form data
 	const apiKey = document.getElementById('api_key_eu').value;
 
-	// FETCH REQUEST TO SAVE DATA
+	// Fetch request to save
 	fetch('/submit_?id=api_key_eu', {
 			method: 'POST',
 			headers: {
@@ -80,27 +80,8 @@ document.getElementById('api_key_eu_form').addEventListener('submit', function(e
 });
 
 
-// Fetch -  NOT USED
-function fetch_status() {
-    fetch('/verify', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
 
-		})
-		.then(response => response.json())
-		.then(data => {
-			console.log("Server response:", data);
-		})
-		.catch(error => {
-			console.error("Error:", error);
-			alert("An error occurred while. Try again.");
-		});
-}
-
-
-/* ---------- LOADING OVERLAY CONFIGS ---------- */
+/* ---------- Loading overlay configs ---------- */
 var configs = {
 	"overlayBackgroundColor": "#2d2d2d",
 	"overlayOpacity": 0.4,
@@ -118,7 +99,7 @@ var configs = {
 };
 
 
-/* ---------- LOADING OVERLAY ---------- */
+/* ---------- Loading overlay ---------- */
 function loading() {
 	JsLoadingOverlay.show(configs);
 }
@@ -130,7 +111,7 @@ window.onload = function() {
 };
 
 
-/* ---------- PAGE RELOAD HANDLER ---------- */
+/* ---------- Page Reload Handler ---------- */
 window.addEventListener('pageshow', function(event) {
 	if (event.persisted) {
 		location.reload()
@@ -139,7 +120,7 @@ window.addEventListener('pageshow', function(event) {
 });
 
 
-/* ---------- SELECT ADD_USER AND DELETE_USER TOGETHER ---------- */
+/* ---------- Select add_user and delete_user together ---------- */
 // US
 const selectAddUser = document.getElementById('test_add_user');
 const selectDeleteUser = document.getElementById('test_delete_user');
@@ -182,7 +163,7 @@ selectDeleteUser_EU.addEventListener('change', function() {
 });
 
 
-/* ---------- "SELECT ALL" FUNCTIONALITY ---------- */
+/* ---------- "Select All" Functionality ---------- */
 // US
 const selectAllCheckbox = document.getElementById('selectAll');
 const testCheckboxes = document.querySelectorAll('input[name="test"]');
@@ -204,7 +185,7 @@ selectAllCheckbox_EU.addEventListener('change', function() {
 });
 
 
-/* ---------- ENSURE "SELECT ALL" IS UNCHECKED WHEN ANY OTHER IS UNCHECKED ---------- */
+/* ---------- ensure "Select all" is unchecked when any other is unchecked ---------- */
 // US
 testCheckboxes.forEach(checkbox => {
 	checkbox.addEventListener('change', function() {
@@ -233,7 +214,7 @@ testCheckboxes_EU.forEach(checkbox => {
 });
 
 
-/* ---------- ADD EVENT LISTENER - CHECKBOX - BASED ON DATA-GROUP ATTRIBUTE ---------- */
+/* ---------- add event listener - checkbox - based on data-group attribute ---------- */
 document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
         const group = this.dataset.group; // GET GROUP NAME
@@ -251,8 +232,7 @@ document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox
 
 
 
-/* ---------- CHECK IF INPUT IS BLANK HELPER ---------- */
-function isInputBlank(inputId) {
+/* ---------- check if input is blank helper ---------- */function isInputBlank(inputId) {
 	const inputValue = document.getElementById(inputId);
 	if (inputValue == null) {
 		return true;
@@ -264,7 +244,7 @@ function isInputBlank(inputId) {
 };
 
 
-/* ---------- TITLE BAR / HUD ---------- */
+/* ---------- title bar / hud ---------- */
 const elementToWrap = document.getElementById('title');
 const newDiv = document.createElement('div');
 elementToWrap.parentNode.insertBefore(newDiv, elementToWrap);
@@ -273,7 +253,7 @@ newDiv.setAttribute('id', 'title-bar-div');
 newDiv.setAttribute('class', 'title-bar');
 
 
-/* ---------- MODAL ---------- */
+/* ---------- modal ---------- */
 var modal = document.getElementById("settingsModal");
 var modalContainer = document.getElementById("modalContainer");
 var btn = document.getElementById("modalBtn");
@@ -288,7 +268,7 @@ btn.onclick = function() {
   modalContainer.style.display = "block";
 }
 
-/* ---------- MODAL SVG BUTTON ---------- */
+/* ---------- modal svg button ---------- */
 var modalBtnSvg = document.getElementById("modalBtnSvg");
 modalBtnSvg.addEventListener('mouseover', function() {
     modalBtnSvg.style.fill = 'black';
@@ -298,14 +278,14 @@ modalBtnSvg.addEventListener('mouseout', function() {
     modalBtnSvg.style.fill = 'grey';
 });
 
-// CLOSE FUNCTION
+// Close Function
 span.onclick = function() {
   modal.style.display = "none";
   modalContainer.style.display = "none";
 }
 
 
-/* ---------- MAIN ---------- */
+/* ---------- Main ---------- */
 async function runTestsUS() {
     const status = document.getElementById('status');
 	if (status == null  ) {
@@ -392,30 +372,26 @@ $('ul li').on('click', function() {
 
 
 
-// TABS CONTROL
+// Tabs Control
 function openTab(evt, tabName) {
-    // Declare all variables
-    var i, tabcontent, tablinks;
 
-    // Get all elements with class="tabcontent" and hide them
+    var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
       tabcontent[i].style.display = "none";
     }
 
-    // Get all elements with class="tablinks" and remove the class "active"
     tablinks = document.getElementsByClassName("tablinks");
     for (i = 0; i < tablinks.length; i++) {
       tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
 
-    // Show the current tab, and add an "active" class to the link that opened the tab
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
   }
 
 
- // FETCH REPORT DIRECTORY LIST
+ // Fetch Directory Report List
 
 function fetchDirectory() {
   fetch('/list-directory')
@@ -423,13 +399,13 @@ function fetchDirectory() {
     .then(data => {
         const fileList = document.getElementById('file-list');
 
-        // ERROR HANDLING
+        // error handling
         if (data.error) {
             fileList.innerHTML = `<li>${data.error}</li>`;
             return;
         }
 
-        // POPULATE CLICKABLE LINKS
+        // populate clickable links
         data.files.forEach(file => {
             const listItem = document.createElement('li');
             const link = document.createElement('a');

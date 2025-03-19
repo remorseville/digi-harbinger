@@ -5,14 +5,14 @@ import os
 import sys
 
 
-# GLOBALS
+# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
 ENV_VARS = dotenv_values(ENV_FILE)
 
 
-# DYNAMIC PATH HANDLING (PACKAGED VS DEV)
+# dynamic path handling (packaged vs dev)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -21,7 +21,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# REQUEST HELPER FUNCTION
+# request helper function
 def make_request(method, endpoint, payload=None):
     if ENV_VARS["US_MODE"] == "true":
         base_url = ENV_VARS["DIGICERT_BASE_URL_US"]
@@ -41,7 +41,7 @@ def make_request(method, endpoint, payload=None):
     return response
 
 
-# DOMAIN DCV TESTING
+# domain dcv testing
 def test_list_domains():
     endpoint = "domain"
     response = make_request("GET", endpoint)
@@ -52,13 +52,13 @@ def test_list_domains():
     assert "name" in response.text, "Key 'name' is missing in the response"
 
 
-# SUBMIT NEW DOMAIN
+# submit new domain
 def test_add_domain(shared_data):
     endpoint = "domain"
     payload = {
-        "name": "delete.test.digicertsub.com",  # DOMAIN USED _ CURRENTLY NOT A VAR _ TODO
+        "name": "delete.test.digicertsub.com",  # domain used _ currently not a var _ TODO
         "organization": {
-            "id": 1903266,  # SAME WITH ORG_ID TODO GET THE FIRST ORG ID
+            "id": 1903266,  # same with org_id TODO get the first org id
         },
         "validations": [
             {

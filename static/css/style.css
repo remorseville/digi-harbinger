@@ -14,6 +14,7 @@ body {
     margin: 0px !important;
     font-family: "Roboto";
     overflow-x: hidden;
+    zoom: .85 !important;
 }
 @font-face { font-family: roboto-regular;
          src: url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'); }
@@ -110,7 +111,7 @@ a {
     display:flex;
 }
 
-/* ----------------- TITLE BAR ------------------ */
+/* ----------------- Title Bar ------------------ */
 #title {
     display: block;
     font-size: 2em;
@@ -132,7 +133,7 @@ a {
 
 #bottom, #eu_bottom {
     margin-bottom: 50px;
-    padding-bottom:20px;
+ 
     padding-top:20px;
     margin-top:20px;
 }
@@ -152,7 +153,7 @@ a {
 }
 
 
-/* ----------------- MODAL BACKGROUND ------------------ */
+/* ----------------- Modal Background ------------------ */
 .modal {
     display: none;
     width: 30vw;
@@ -166,7 +167,7 @@ a {
     top: 30%;
 }
 
-/* ----------------- MODAL CONTENT ------------------ */
+/* ----------------- Modal Content ------------------ */
 .modal-content {
     background-color: #fefefe;
     width: 100%;
@@ -206,7 +207,7 @@ a {
     height: 20px;
 }
 
-/* ----------------- MODAL ANIMATION ------------------ */
+/* ----------------- Modal Animation ------------------ */
 
 @-webkit-keyframes fadeIn {
 from {opacity: 0}

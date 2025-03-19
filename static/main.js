@@ -25,8 +25,3 @@ window.addEventListener("load", (event) => {
   newDiv.setAttribute('id', 'title-bar-div2'); // Set an ID
   newDiv.setAttribute('class', 'title-bar'); // Add a class
 });
-
-
-
-
-//<a href="./">Home</a>

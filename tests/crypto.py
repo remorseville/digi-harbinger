@@ -9,14 +9,14 @@ from cryptography.hazmat.primitives import hashes
 from dotenv import dotenv_values, set_key
 
 
-# GLOBALS
+# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
 ENV_VARS = dotenv_values(ENV_FILE)
 
 
-# DYNAMIC PATH HANDLING (PACKAGED VS DEV)
+# dynamic path handling (packaged vs dev)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -28,7 +28,7 @@ def resource_path(relative_path):
 
 def generate_private_key():
 
-    # GENERATE KEY
+    # generate key
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -40,10 +40,10 @@ def generate_private_key():
         encryption_algorithm=serialization.NoEncryption(),
     )
 
-    # CONVERT BYTES TO STRING FOR .ENV
+    # convert bytes to string for .Env
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
-    # WRITE TO .ENV
+    # write to .env
     ENV_VARS["PRIVATE_KEY"] = private_key_str
     for key, value in ENV_VARS.items():
         set_key(ENV_FILE, key, value)
@@ -62,12 +62,12 @@ def generate_csr(key):
         ]),
         critical=False,
 
-    ).sign(key_bytes, hashes.SHA256())  # SIGN WITH OUR KEY
+    ).sign(key_bytes, hashes.SHA256())  # sign with our key
 
     csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
     csr_string = csr_bytes.decode('utf-8').replace('\n', '')
 
-    # WRITE CSR TO .ENV
+    # write csr to .env
     ENV_VARS["CSR"] = csr_string
     for key, value in ENV_VARS.items():
         set_key(ENV_FILE, key, value)
@@ -75,10 +75,10 @@ def generate_csr(key):
     return csr_string
 
 
-# ---------------- DUPLICATE KEY AND CSR FUNCTIONS FOR SEPERATE HANDLING -------------------- #
+# ---------------- duplicate key and csr functions for seperate handling -------------------- #
 def generate_private_key_tab():
 
-    # GENERATE KEY
+    # generate key
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -90,10 +90,10 @@ def generate_private_key_tab():
         encryption_algorithm=serialization.NoEncryption(),
     )
 
-    # CONVERT BYTES TO STRING FOR .ENV
+    # convert bytes to string for .Env
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
-    # WRITE TO .ENV
+    # write to .env
     ENV_VARS["PRIVATE_KEY"] = private_key_str
     for key, value in ENV_VARS.items():
         set_key(ENV_FILE, key, value)
@@ -107,19 +107,17 @@ def generate_csr_tab(key):
         x509.NameAttribute(NameOID.COMMON_NAME, "testing.local"),  # CN, SANS
     ])).add_extension(
         x509.SubjectAlternativeName([
-            # Describe what sites we want this certificate for.
             x509.DNSName("testing.local"),
             x509.DNSName("www.testing.local"),
         ]),
         critical=False,
-        # SIGN WITH OUR KEY
-    ).sign(key_bytes, hashes.SHA256())
+    ).sign(key_bytes, hashes.SHA256())  # sign with our key
 
     csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
     csr_string = csr_bytes.decode('utf-8').replace('\n', '')
 
     private_key_str = key.decode('utf-8').replace('\n', '')
-    # WRITE CSR TO .ENV
+    # returns csr and key
     ENV_VARS["CSR"] = csr_string
     for key, value in ENV_VARS.items():
         set_key(ENV_FILE, key, value)
