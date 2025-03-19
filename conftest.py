@@ -16,8 +16,6 @@ def resource_path(relative_path):
     return os.path.normpath(os.path.join(base_path, relative_path))
 
 
-pytest_plugins = ('pytest_asyncio')
-
 
 @pytest.fixture(scope="module")
 def shared_data():
@@ -81,7 +79,7 @@ def run_pytest(selected_tests):
 
     try:
         # run pytest
-        pytest.main(plugins=['pytest_html'])
+        pytest.main()
     finally:
         # restore original sys.Argv
         sys.argv = original_argv

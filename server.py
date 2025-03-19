@@ -122,8 +122,10 @@ async def report():
             print(f"Permission denied for {destination}.")
         except Exception as e:
             print(f"An error occurred: {e}")
+        
+        time.sleep(3)
 
-        return render_template("report.html")  # retunrs the generated report (or last saved "Report.Html" on any failure)
+        return  # retunrs the generated report (or last saved "Report.Html" on any failure)
     else:
 
         # get request handling - used for older report view
@@ -347,7 +349,7 @@ if __name__ == "__main__":
         print("on_exit bye")
     
     screen_dimensions = user_screen_size()
-    x = (screen_dimensions[0] / 2) - 475
+    x = (screen_dimensions[0] / 2) - 550
     y = (screen_dimensions[1] / 2) - 475
 
     if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
@@ -363,7 +365,7 @@ if __name__ == "__main__":
             "app": app,
             "port": 5444,
         },
-        width=950,
+        width=1100,
         height=950,
         browser_path='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         extra_flags = [f"--window-position={int(x)},{int(y)}"],
