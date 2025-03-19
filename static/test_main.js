@@ -309,7 +309,7 @@ async function runTestsUS() {
             .then(loading());
 
             const data = await response;
-            window.location.replace("../report?sort=original");
+            window.location.href("../report?sort=original");
             JsLoadingOverlay.hide();
 
         } else {
