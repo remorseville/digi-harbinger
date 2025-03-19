@@ -123,7 +123,14 @@ async def report():
         except Exception as e:
             print(f"An error occurred: {e}")
 
-        return render_template("report.html")  # retunrs the generated report (or last saved "Report.Html" on any failure)
+        response = render_template('report.html')
+    
+        # Disable caching
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        
+        return response  # returns the generated report (or last saved "Report.Html" on any failure)
     else:
 
         # get request handling - used for older report view
@@ -131,7 +138,14 @@ async def report():
         if arg:
             return render_template(f"/reports/{arg}.html")  # if passed, generate (older) report
         else:
-            return render_template("report.html")
+            response = render_template('report.html')
+    
+            # Disable caching
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '-1'
+            
+            return response 
 
 
 # env variable form endpoint
