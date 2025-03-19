@@ -20,7 +20,9 @@ from tests import crypto
 
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 ui = FlaskUI(app, width=500, height=500) # TODO used for when changed to UI vs Browser
+
 
 
 # dynamic path handling (packaged vs dev)
