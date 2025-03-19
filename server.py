@@ -45,9 +45,9 @@ EU_STATUS_VERIFIED = False      # Used below with eu_ping_get_account_values() #
 
 @app.after_request
 def add_security_headers(resp):
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '-1'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '-1'
     return resp
 
 
