@@ -20,7 +20,9 @@ from tests import crypto
 
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 ui = FlaskUI(app, width=500, height=500) # TODO used for when changed to UI vs Browser
+
 
 
 # dynamic path handling (packaged vs dev)
@@ -42,6 +44,14 @@ EU_STATUS_VERIFIED = False      # Used below with eu_ping_get_account_values() #
 
 
 # -------------------------- routes -------------------------------- #
+
+@app.after_request
+def add_security_headers(resp):
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '-1'
+    return resp
+
 
 # homepage
 @app.route('/', methods=['GET', 'POST'])
@@ -125,7 +135,10 @@ async def report():
         
         time.sleep(3)
 
-        return  # retunrs the generated report (or last saved "Report.Html" on any failure)
+        response = render_template('report.html')
+    
+        
+        return response  # returns the generated report (or last saved "Report.Html" on any failure)
     else:
 
         # get request handling - used for older report view
@@ -133,7 +146,9 @@ async def report():
         if arg:
             return render_template(f"/reports/{arg}.html")  # if passed, generate (older) report
         else:
-            return render_template("report.html")
+            response = render_template('report.html')
+            
+            return response 
 
 
 # env variable form endpoint
