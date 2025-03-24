@@ -1,44 +1,9 @@
-import requests
 from dotenv import dotenv_values
 import json
-import os
-import sys
+from utils.dc_api_handler import digicert_api_handler
 
 
-# globals
-APP_DATA = os.getenv('LOCALAPPDATA')
-APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
-ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
-ENV_VARS = dotenv_values(ENV_FILE)
-
-
-# dynamic path handling (packaged vs dev)
-def resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-
-# request helper function
-def make_request(method, endpoint, payload=None):
-    if ENV_VARS["US_MODE"] == "true":
-        base_url = ENV_VARS["DIGICERT_BASE_URL_US"]
-        api_key = ENV_VARS["DIGICERT_API_KEY_US"]
-
-    else:
-        base_url = ENV_VARS["DIGICERT_BASE_URL_EU"]
-        api_key = ENV_VARS["DIGICERT_API_KEY_EU"]
-
-    headers = {
-        "X-DC-DEVKEY": api_key,
-        "Content-Type": "application/json"
-    }
-
-    url = f"{base_url}/{endpoint}"
-    response = requests.request(method, url, headers=headers, json=payload)
-    return response
+make_request = digicert_api_handler.make_request
 
 
 def test_list_replacement_benefits():

@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
@@ -8,22 +7,14 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from dotenv import dotenv_values, set_key
 
+from utils.env_parameter_handler import KeyValueStore
+
 
 # globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
 ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
 ENV_VARS = dotenv_values(ENV_FILE)
-
-
-# dynamic path handling (packaged vs dev)
-def resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
 
 
 def generate_private_key():
@@ -44,9 +35,7 @@ def generate_private_key():
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
     # write to .env
-    ENV_VARS["PRIVATE_KEY"] = private_key_str
-    for key, value in ENV_VARS.items():
-        set_key(ENV_FILE, key, value)
+    KeyValueStore.set("PRIVATE_KEY", private_key_str) 
     return private_key_bytes
 
 
@@ -68,9 +57,7 @@ def generate_csr(key):
     csr_string = csr_bytes.decode('utf-8').replace('\n', '')
 
     # write csr to .env
-    ENV_VARS["CSR"] = csr_string
-    for key, value in ENV_VARS.items():
-        set_key(ENV_FILE, key, value)
+    KeyValueStore.set("CSR", csr_string)
 
     return csr_string
 
@@ -94,9 +81,7 @@ def generate_private_key_tab():
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
     # write to .env
-    ENV_VARS["PRIVATE_KEY"] = private_key_str
-    for key, value in ENV_VARS.items():
-        set_key(ENV_FILE, key, value)
+    KeyValueStore.set("PRIVATE_KEY", private_key_str)  
     return private_key_bytes
 
 
@@ -118,10 +103,8 @@ def generate_csr_tab(key):
 
     private_key_str = key.decode('utf-8').replace('\n', '')
     # returns csr and key
-    ENV_VARS["CSR"] = csr_string
-    for key, value in ENV_VARS.items():
-        set_key(ENV_FILE, key, value)
-
+    KeyValueStore.set("CSR", csr_string)  
+    
     data = {
         "csr": csr_string,
         "key": private_key_str

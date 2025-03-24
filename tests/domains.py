@@ -1,50 +1,45 @@
-import requests
 from dotenv import dotenv_values
 import json
 import os
-import sys
+from utils.sqlite_kv_store import kv_store
+import requests
 
 
-# globals
 APP_DATA = os.getenv('LOCALAPPDATA')
 APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
-ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
-ENV_VARS = dotenv_values(ENV_FILE)
+ENV_FILE = os.path.join(APP_DIRECTORY, "env.json")
+ENV_STORE = kv_store
 
 
-# dynamic path handling (packaged vs dev)
-def resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-
-# request helper function
-def make_request(method, endpoint, payload=None):
-    if ENV_VARS["US_MODE"] == "true":
-        base_url = ENV_VARS["DIGICERT_BASE_URL_US"]
-        api_key = ENV_VARS["DIGICERT_API_KEY_US"]
-
-    else:
-        base_url = ENV_VARS["DIGICERT_BASE_URL_EU"]
-        api_key = ENV_VARS["DIGICERT_API_KEY_EU"]
-
-    headers = {
-        "X-DC-DEVKEY": api_key,
-        "Content-Type": "application/json"
-    }
-
+def make_request(method, base_url, endpoint, headers, payload=None):
     url = f"{base_url}/{endpoint}"
     response = requests.request(method, url, headers=headers, json=payload)
     return response
 
 
+def locale_check():
+    mode = ENV_STORE.get("US_MODE")
+    
+    if mode == "true":
+        base_url = ENV_STORE.get("DIGICERT_BASE_URL_US")
+        api_key = ENV_STORE.get("DIGICERT_API_KEY_US")
+    else:
+        base_url = ENV_STORE.get("DIGICERT_BASE_URL_EU")
+        api_key = ENV_STORE.get("DIGICERT_API_KEY_EU")
+    headers = {
+                "X-DC-DEVKEY": api_key,
+                "Content-Type": "application/json"
+            }
+    org_id = ENV_STORE.get("ORG_ID")
+    
+    url_header = [base_url, headers, org_id]
+    return url_header
+
 # domain dcv testing
 def test_list_domains():
     endpoint = "domain"
-    response = make_request("GET", endpoint)
+    locale_url_header_org = locale_check()
+    response = make_request("GET",locale_url_header_org[0],endpoint, locale_url_header_org[1])
     data = json.loads(response.text)
     print(json.dumps(data, indent=4))
     assert response.status_code == 200
@@ -55,10 +50,11 @@ def test_list_domains():
 # submit new domain
 def test_add_domain(shared_data):
     endpoint = "domain"
+    locale_url_header_org = locale_check()
     payload = {
         "name": "delete.test.digicertsub.com",  # domain used _ currently not a var _ TODO
         "organization": {
-            "id": 1903266,  # same with org_id TODO get the first org id
+            "id": locale_url_header_org[2],  # same with org_id TODO get the first org id
         },
         "validations": [
             {
@@ -68,7 +64,8 @@ def test_add_domain(shared_data):
         "dcv_method": "dns-txt-token"
     }
 
-    response = make_request("POST", endpoint, payload)
+    locale_url_header_org = locale_check()
+    response = make_request("POST",locale_url_header_org[0],endpoint, locale_url_header_org[1], payload)
     data = json.loads(response.text)
     print(json.dumps(data, indent=4))
     assert response.status_code == 201
@@ -80,21 +77,24 @@ def test_add_domain(shared_data):
 def test_deactivate_domain(shared_data):
     domain_id = shared_data["new_domain_id"]
     endpoint = f"domain/{domain_id}/deactivate"
-    response = make_request("PUT", endpoint)
+    locale_url_header_org = locale_check()
+    response = make_request("PUT",locale_url_header_org[0],endpoint, locale_url_header_org[1])
     assert response.status_code == 204
 
 
 def test_activate_domain(shared_data):
     domain_id = shared_data["new_domain_id"]
     endpoint = f"domain/{domain_id}/activate"
-    response = make_request("PUT", endpoint)
+    locale_url_header_org = locale_check()
+    response = make_request("PUT",locale_url_header_org[0],endpoint, locale_url_header_org[1])
     assert response.status_code == 204
 
 
 def test_domain_info(shared_data):
     domain_id = shared_data["new_domain_id"]
     endpoint = f"domain/{domain_id}"
-    response = make_request("GET", endpoint)
+    locale_url_header_org = locale_check()
+    response = make_request("GET",locale_url_header_org[0],endpoint, locale_url_header_org[1])
     data = json.loads(response.text)
     print(json.dumps(data, indent=4))
     assert response.status_code == 200
@@ -107,7 +107,8 @@ def domain_change_dcv_method(shared_data, dcv_method):
         "dcv_method": dcv_method
     }
 
-    response = make_request("PUT", endpoint, payload)
+    locale_url_header_org = locale_check()
+    response = make_request("PUT",locale_url_header_org[0],endpoint, locale_url_header_org[1], payload)
     data = json.loads(response.text)
     print(json.dumps(data, indent=4))
     assert response.status_code == 200
@@ -130,5 +131,6 @@ def test_domain_change_dcv_http_token(shared_data):
 def test_delete_domain(shared_data):
     domain_id = shared_data["new_domain_id"]
     endpoint = f"domain/{domain_id}"
-    response = make_request("DELETE", endpoint)
+    locale_url_header_org = locale_check()
+    response = make_request("DELETE",locale_url_header_org[0],endpoint, locale_url_header_org[1])
     assert response.status_code == 204

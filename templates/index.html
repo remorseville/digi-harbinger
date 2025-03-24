@@ -15,7 +15,7 @@
   </head>
   <body>
     <div id="title-bar-div2" class="title-bar">
-      <a id="home-link" >Version 0.1</a>
+      <a id="home-link" >Version 0.4</a>
       <h1 id="title">Digi-Harbinger</h1>
     </div>
     <div class="main">
@@ -65,15 +65,17 @@
               {% endif %}
             </div>
             <div class="sub-grid" id="org_select_container">
-              {% for org in org_ids %} {% if org is none %} {% else %}
+              
 
               <label for="org_dropdown">Current Org:</label>
               <select id="org_dropdown" name="org_dropdown">
+                {% for org in org_ids %} {% if org is none %} {% else %}
                 <option value="{{ org['org_id'] if org else '' }}">
                   {{ org["org_id"] }} : {{ org["org_name"] }}
                 </option>
+                {% endif %} {% endfor %}
               </select>
-              {% endif %} {% endfor %}
+              
             </div>
 
           </div>
@@ -178,7 +180,7 @@
                       <input
                         type="checkbox"
                         name="eu_test"
-                        value="eu_{{ test }}"
+                        value="{{ test }}"
                         id="eu_{{ test }}"
                         data-group="eu_{{ key }}"
                       />

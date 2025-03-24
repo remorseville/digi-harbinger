@@ -22,10 +22,10 @@ document.getElementById('gen_keypair_button').addEventListener('click', function
 document.getElementById('api_key_us_form').addEventListener('submit', function(event) {
 	event.preventDefault();
 
-	// GET FORM DATA
+	// Get form data
 	const apiKey = document.getElementById('api_key_us').value;
 
-	// FETCH REQUEST TO SAVE DATA
+	// Fetch request to save
 	fetch('/submit_?id=api_key_us', {
 			method: 'POST',
 			headers: {
@@ -85,8 +85,8 @@ document.getElementById('api_key_eu_form').addEventListener('submit', function(e
 var configs = {
 	"overlayBackgroundColor": "#2d2d2d",
 	"overlayOpacity": 0.4,
-	"spinnerIcon": "ball-clip-rotate",
-	"spinnerColor": "#000",
+	"spinnerIcon": "timer",
+	"spinnerColor": "#1976d2",
 	"spinnerSize": "2x",
 	"overlayIDName": "overlay",
 	"spinnerIDName": "spinner",
@@ -192,7 +192,7 @@ testCheckboxes.forEach(checkbox => {
 		if (!this.checked) {
 			selectAllCheckbox.checked = false;
 		} else {
-			// OTHERWISE, "CHECK ALL" IF CHECKED
+			// Otherwise, check all if checked
 			const allChecked = Array.from(testCheckboxes).every(cb => cb.checked);
 			selectAllCheckbox.checked = allChecked;
 		}
@@ -206,7 +206,7 @@ testCheckboxes_EU.forEach(checkbox => {
 		if (!this.checked) {
 			selectAllCheckbox_EU.checked = false;
 		} else {
-			// OTHERWISE, "CHECK ALL" IF CHECKED
+			// Otherwise, check all if checked
 			const allChecked_EU = Array.from(testCheckboxes_EU).every(cb => cb.checked);
 			selectAllCheckbox_EU.checked = allChecked_EU;
 		}
@@ -217,11 +217,11 @@ testCheckboxes_EU.forEach(checkbox => {
 /* ---------- add event listener - checkbox - based on data-group attribute ---------- */
 document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
-        const group = this.dataset.group; // GET GROUP NAME
+        const group = this.dataset.group; // get group name
         if (group == "domains" || group == "organizations" || group == "eu_organizations" || group == "eu_domains"){
-            const isChecked = this.checked; // GET CHECKED STATE
+            const isChecked = this.checked; // get checked state
 
-            // FIND ALL IN SAME GROUP AND SET CHECKED STATE
+            // Find all in the same group and check state
             document.querySelectorAll(`input[type="checkbox"][data-group="${group}"]`).forEach(groupCheckbox => {
                 groupCheckbox.checked = isChecked;
             });
@@ -230,9 +230,8 @@ document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox
 });
 
 
-
-
-/* ---------- check if input is blank helper ---------- */function isInputBlank(inputId) {
+/* ---------- check if input is blank helper ---------- */
+function isInputBlank(inputId) {
 	const inputValue = document.getElementById(inputId);
 	if (inputValue == null) {
 		return true;
@@ -262,12 +261,6 @@ var btn = document.getElementById("modalBtn");
 var span = document.getElementsByClassName("close")[0] ;
 
 
-
-btn.onclick = function() {
-  modal.style.display = "block";
-  modalContainer.style.display = "block";
-}
-
 /* ---------- modal svg button ---------- */
 var modalBtnSvg = document.getElementById("modalBtnSvg");
 modalBtnSvg.addEventListener('mouseover', function() {
@@ -287,17 +280,21 @@ span.onclick = function() {
 
 /* ---------- Main ---------- */
 async function runTestsUS() {
-    const status = document.getElementById('status');
+    let status = document.getElementById('status');
 	if (status == null  ) {
 		alert("Save ENV variables before you continue.");
 	} else {
-		const form = document.getElementById('testForm');
-		const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');
-		console.log(checkboxes)
-		const selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+		let form = document.getElementById('testForm');
+		let checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');
+		let selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+
+		let org_select = document.getElementById('org_dropdown');
+		let org_value = org_select.value
+		let org = org_select.options[org_select.selectedIndex].text;
+
 
 		if (checkboxes.length !== 0){
-		    const response = await fetch('/report?us_mode=true', {
+		    let response = await fetch('/report?us_mode=true&org=' + org_value, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -308,7 +305,7 @@ async function runTestsUS() {
             })
             .then(loading());
 
-            const data = await response;
+            let response_data = await response;
             window.location.href = "/report?sort=original";
             JsLoadingOverlay.hide();
 
@@ -319,29 +316,33 @@ async function runTestsUS() {
 }
 
 async function runTestsEU() {
-    const status = document.getElementById('eu_status');
+    let status = document.getElementById('eu_status');
 	if (status == null  ) {
 		alert("Save ENV variables before you continue.");
 	} else {
-		const form = document.getElementById('eu_testForm');
-		const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#eu_selectAll)');
-		console.log(checkboxes)
-		const selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+		let form = document.getElementById('eu_testForm');
+		let checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#eu_selectAll)');
+		let selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
 
+		let org_select = document.getElementById('eu_org_dropdown');
+		let org_value = org_select.value
+		let org = org_select.options[org_select.selectedIndex].text;
+
+		
 		if (checkboxes.length !== 0){
-		    const response = await fetch('/report?us_mode=false', {
+		    let response = await fetch('/report?us_mode=false&org=' + org_value, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    selected_tests: selectedTests
+                    selected_tests: selectedTests,
                 }),
             })
             .then(loading());
 
-            const data = await response;
-            window.location.replace("../report?sort=original");
+            let data = await response;
+            window.location.href = "/report?sort=original";
             JsLoadingOverlay.hide();
 
         } else {
@@ -409,7 +410,7 @@ function fetchDirectory() {
         data.files.forEach(file => {
             const listItem = document.createElement('li');
             const link = document.createElement('a');
-            link.href = `/report?id=${file}`; // SAVED FILEPATH
+            link.href = `/report?id=${file}`; // saved filepath
             link.textContent = file;
             listItem.appendChild(link);
             fileList.appendChild(listItem);

@@ -8,6 +8,7 @@ from tests.crypto import generate_csr, generate_private_key
 from tests.certificates import find_cert_id
 
 
+# Custom resource path - returns normpath
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -16,7 +17,7 @@ def resource_path(relative_path):
     return os.path.normpath(os.path.join(base_path, relative_path))
 
 
-
+# ---------- Pytest Fuxtures (shared parameters when tests are ran) ------------ #
 @pytest.fixture(scope="module")
 def shared_data():
     data = {}
@@ -49,6 +50,7 @@ def pytest_html_results_summary(prefix, summary, postfix):
 def us_mode():
     data = ""
     yield data
+# ---------- End ------------ #
 
 
 def run_pytest(selected_tests):
@@ -56,33 +58,29 @@ def run_pytest(selected_tests):
     # resource path conversion
     resolved_tests = []
     for test in selected_tests:
-        # split path and test name (e.G., "./tests/account.Py::test_account_details")
-        path, *test_name = test.split("::")
-        resolved_path = resource_path(path)
-        # reconstruct 
+        path, *test_name = test.split("::")                             # split path and test name (e.G., "./tests/account.Py::test_account_details")
+        resolved_path = resource_path(path) 
         if test_name:
-            resolved_test = f"{resolved_path}::{'::'.join(test_name)}"
+            resolved_test = f"{resolved_path}::{'::'.join(test_name)}"  # reconstruct
         else:
             resolved_test = resolved_path
         resolved_tests.append(resolved_test)
 
-    original_argv = sys.argv # save any current sys.Argv
+    original_argv = sys.argv                                            # save any current sys.Argv
     
 
-    # replace sys.Argv with pytest arguments 
-    sys.argv = [
-        "pytest",  # pytest command
+    
+    sys.argv = [                                                        # replace sys.Argv with pytest arguments 
+        "pytest",                                                       # pytest command
         f"--html={resource_path('./templates/report.html')}",
         f"--css={resource_path('./static/css/custom.css')}",
         "--self-contained-html"
     ] + resolved_tests
 
     try:
-        # run pytest
-        pytest.main()
+        pytest.main()                                                   # run pytest
     finally:
-        # restore original sys.Argv
-        sys.argv = original_argv
+        sys.argv = original_argv                                        # restore original sys.Argv
 
 @pytest.mark.asyncio
 async def process_defined_tests(selected_tests):
