@@ -1,13 +1,10 @@
-from dotenv import dotenv_values
 import json
-import os
 import requests
+
+# Local file imports
 from utils.sqlite_kv_store import kv_store
 
 
-APP_DATA = os.getenv('LOCALAPPDATA')
-APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
-ENV_FILE = os.path.join(APP_DIRECTORY, "env.json")
 ENV_STORE = kv_store
 
 

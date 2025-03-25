@@ -1,25 +1,21 @@
 import json
-import os
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from dotenv import dotenv_values, set_key
 
-from utils.env_parameter_handler import KeyValueStore
+#  Local file imports
+from utils.sqlite_kv_store import kv_store
 
 
-# globals
-APP_DATA = os.getenv('LOCALAPPDATA')
-APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
-ENV_FILE = os.path.join(APP_DIRECTORY, ".env")
-ENV_VARS = dotenv_values(ENV_FILE)
+#  Globals
+ENV_STORE = kv_store
 
 
 def generate_private_key():
 
-    # generate key
+    # Generate key
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -31,11 +27,11 @@ def generate_private_key():
         encryption_algorithm=serialization.NoEncryption(),
     )
 
-    # convert bytes to string for .Env
+    # Convert bytes to string for .Env
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
-    # write to .env
-    KeyValueStore.set("PRIVATE_KEY", private_key_str) 
+    # Write to .env
+    ENV_STORE.set("PRIVATE_KEY", private_key_str) 
     return private_key_bytes
 
 
@@ -57,12 +53,12 @@ def generate_csr(key):
     csr_string = csr_bytes.decode('utf-8').replace('\n', '')
 
     # write csr to .env
-    KeyValueStore.set("CSR", csr_string)
+    ENV_STORE.set("CSR", csr_string)
 
     return csr_string
 
 
-# ---------------- duplicate key and csr functions for seperate handling -------------------- #
+# ---------------- Duplicate key and csr functions for seperate handling -------------------- #
 def generate_private_key_tab():
 
     # generate key
@@ -81,7 +77,7 @@ def generate_private_key_tab():
     private_key_str = private_key_bytes.decode('utf-8').replace('\n', '')
 
     # write to .env
-    KeyValueStore.set("PRIVATE_KEY", private_key_str)  
+    ENV_STORE.set("PRIVATE_KEY", private_key_str)  
     return private_key_bytes
 
 
@@ -103,7 +99,7 @@ def generate_csr_tab(key):
 
     private_key_str = key.decode('utf-8').replace('\n', '')
     # returns csr and key
-    KeyValueStore.set("CSR", csr_string)  
+    ENV_STORE.set("CSR", csr_string)  
     
     data = {
         "csr": csr_string,

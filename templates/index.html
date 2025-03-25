@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/html">
   <head>
     <meta charset="utf-8" />
-    <title id="head-title">(ㆆ _ ㆆ)</title>
+    <title id="head-title">(⌐⊙_⊙)</title>
     <link rel="icon" type="image/x-icon" href='{{ url_for("static", filename="favicon.ico") }}'>
     <link
       rel="stylesheet"
@@ -15,7 +15,7 @@
   </head>
   <body>
     <div id="title-bar-div2" class="title-bar">
-      <a id="home-link" >Version 0.4</a>
+      <a id="home-link" >Version 0.55</a>
       <h1 id="title">Digi-Harbinger</h1>
     </div>
     <div class="main">
@@ -33,7 +33,7 @@
         <button class="tablinks" onclick="openTab(event, 'CIS')">
           CIS
         </button>
-		<button class="tablinks" onclick="openTab(event, 'CSR/Key')">
+		    <button class="tablinks" onclick="openTab(event, 'CSR/Key')">
           CSR/Key
         </button>
         <button class="tablinks" onclick="openTab(event, 'Reports')">
@@ -42,16 +42,13 @@
         <button class="tablinks" onclick="openTab(event, 'Settings')">
           Settings
         </button>
-
-
       </div>
       <div id="CC US" class="tabcontent">
-        <!-- MAIN HUD -->
+        <!-- US MAIN HUD -->
         <div class="main-hud-container">
           <div class="hud-grid">
             <div class="sub-grid">
               {% if status_verified %}
-
               <label id="status"
                 >Status:
                 <span class="success-status">Connected</span>
@@ -65,8 +62,6 @@
               {% endif %}
             </div>
             <div class="sub-grid" id="org_select_container">
-              
-
               <label for="org_dropdown">Current Org:</label>
               <select id="org_dropdown" name="org_dropdown">
                 {% for org in org_ids %} {% if org is none %} {% else %}
@@ -75,12 +70,10 @@
                 </option>
                 {% endif %} {% endfor %}
               </select>
-              
             </div>
-
           </div>
         </div>
-        <!-- TEST CONTAINER -->
+        <!-- US TEST CONTAINER -->
         <div class="main-test-container">
           <form id="testForm">
             <h2>Select Tests to Run</h2>
@@ -92,7 +85,6 @@
                   <legend>{{ key }}.py</legend>
                   <div class="summary__data">
                     {% for test in value %}
-
                     <label>
                       <input
                         type="checkbox"
@@ -105,7 +97,6 @@
                     </label>
                     <br />
                     {% endfor %}
-
                     <br />
                     <br />
                   </div>
@@ -123,24 +114,19 @@
         </div>
         <br />
         <br />
-
       </div>
 
-
+      <!-- EU MAIN HUD -->
       <div id="CC EU" class="tabcontent" style="display:none">
-
-
         <div class="main-hud-container">
           <div class="hud-grid">
             <div class="sub-grid">
               {% if eu_status_verified %}
-
               <label id="eu_status"
                 >Status:
                 <span class="success-status">Connected</span>
               </label>
               {% else %}
-
               <label
                 >Status:
                 <span class="fail-status">Not Connected</span>
@@ -149,7 +135,6 @@
             </div>
             <div class="sub-grid" id="eu_org_select_container">
               {% for org in eu_org_ids %} {% if org is none %} {% else %}
-
               <label for="eu_org_dropdown">Current Org:</label>
               <select id="eu_org_dropdown" name="eu_org_dropdown">
                 <option value="{{ org['org_id'] if org else '' }}">
@@ -158,7 +143,6 @@
               </select>
               {% endif %} {% endfor %}
             </div>
-
           </div>
         </div>
 
@@ -169,13 +153,11 @@
             <h2>Select Tests to Run</h2>
             <div class="grid">
               {% for key, value in test_functions.items() %}
-
               <div class="summary form__group" id="eu_{{ key }}">
                 <fieldset>
                   <legend>{{ key }}.py</legend>
                   <div class="summary__data">
                     {% for test in value %}
-
                     <label>
                       <input
                         type="checkbox"
@@ -188,7 +170,6 @@
                     </label>
                     <br />
                     {% endfor %}
-
                     <br />
                     <br />
                   </div>
@@ -208,97 +189,63 @@
         <br />
       </div>
 
-
-
-
+      <!-- CIS API Tab -->
       <div id="CIS" class="tabcontent" style="display:none">
         <div class="main-hud-container">
           <div class="hud-grid">
-
           </div>
-
         </div>
         <h3>CIS</h3>
         <p></p>
       </div>
 
-
-
-
-	  <div id="CSR/Key" class="tabcontent" style="display:none">
+      <!-- CSR Keygen Tab -->
+	    <div id="CSR/Key" class="tabcontent" style="display:none">
         <div class="main-hud-container">
           <div class="hud-grid">
-
-
           </div>
         </div>
         <div class="main-test-container">
           <div class="csr-flex summary form__group">
-
-
           <div>
             <label>CSR</label></br>
             <textarea name="CSR" id="csr_result" cols="40" rows="25"></textarea></br>
-
           </div>
           <div>
             <label>KEY</label></br>
             <textarea name="KEY" id="key_result"  cols="40" rows="25"></textarea></br>
-
           </div>
-
-
-
-
           </div>
           <br>
           <button id="gen_keypair_button">Create CSR/Key</button>
           <br>
-
         </div>
       </div>
-
-      <script>
-
-    </script>
-
-
       <div id="Reports" class="tabcontent" style="display:none">
         <div class="main-hud-container">
           <div class="hud-grid">
-
-
           </div>
         </div>
         <ul id="file-list">
-
         </ul>
-
       </div>
 
-
+      <!-- Settings Tab -->
       <div id="Settings" class="tabcontent" style="display:none">
         <div class="main-hud-container">
           <div class="hud-grid">
-
-
           </div>
         </div>
         <div class="main-test-container">
           <div class="csr-grid summary form__group">
             <div class="sub-grid">
-
                     <form id="api_key_eu_form">
                       <label for="api_key_eu">CertCentral EU API Key:</label>
                       {% if eu_status_verified %}
-
                       <span class="success-status"> Saved </span>
                       {% else %}
-
                       <span class="fail-status"> Not Saved </span>
                       {% endif %}
-
-
                       <br />
                       <input
                         type="password"
@@ -313,45 +260,35 @@
                     <br>
                 <br>
               <br>
-
             </div>
-
-
           </div>
           <br>
-          <div class="csr-grid summary form__group">
-            <div class="sub-grid">
-                    <form id="api_key_us_form">
-                      <label for="api_key_us">CertCentral US API Key:</label>
-                      {% if status_verified %}
-
-                      <span class="success-status"> Saved </span>
-                      {% else %}
-
-                      <span class="fail-status"> Not Saved </span>
-                      {% endif %}
-
-
-                      <br />
-                      <input
-                        type="password"
-                        id="api_key_us"
-                        name="api_key_us"
-                        placeholder="Enter API Key"
-                        value="{{ api_key if api_key else '' }}"
-                        required
-                      />
-                      <button type="submit">Save</button>
-                    </form>
-                    <br>
-
-                  </div>
+            <div class="csr-grid summary form__group">
+              <div class="sub-grid">
+                  <form id="api_key_us_form">
+                    <label for="api_key_us">CertCentral US API Key:</label>
+                    {% if status_verified %}
+                    <span class="success-status"> Saved </span>
+                    {% else %}
+                    <span class="fail-status"> Not Saved </span>
+                    {% endif %}
+                    <br />
+                    <input
+                      type="password"
+                      id="api_key_us"
+                      name="api_key_us"
+                      placeholder="Enter API Key"
+                      value="{{ api_key if api_key else '' }}"
+                      required
+                    />
+                    <button type="submit">Save</button>
+                  </form>
+                  <br>
+                </div>
             </div>
-
           </div>
         </div>
       </div>
-
 
 
       <!-- MODAL -->

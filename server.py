@@ -9,23 +9,26 @@ import importlib
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
-from flaskwebgui import FlaskUI             
+from flaskwebgui import FlaskUI    
 
-# local imports
+# Local file imports
 from conftest import process_defined_tests
 from tests.test_functions import test_scripts
 from tests import crypto
 from utils.sqlite_kv_store import kv_store
 
-kv_store = kv_store 
+
+# -------------------------- Environment -------------------------------- #
+
+kv_store = kv_store                         # Load our env sql db
 
 
-app = Flask(__name__)
+app = Flask(__name__)                       # Main Flask App
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Required for hot-reloading of html otherwise you'll see cached versions
 ui = FlaskUI(app, width=500, height=500)    
 
 
-def resource_path(relative_path):           # Dynamic path handling for file references (packaged vs dev)
+def resource_path(relative_path):           # Dynamic path handling for file references (prod vs dev)
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
     else:
@@ -34,36 +37,30 @@ def resource_path(relative_path):           # Dynamic path handling for file ref
 
 
 # Globals
-APP_DATA = os.getenv('LOCALAPPDATA')
-APP_DIRECTORY = os.path.join(APP_DATA, "Digi-Harbinger")
-ENV_FILE = os.path.join(APP_DIRECTORY, "env.json")
-TEST_FUNCTIONS = test_scripts()             # Refer to test_functions.Py - array of test functions for handling
-US_STATUS_VERIFIED = False                  # Used below with us_ping_get_account_values() # tracks api/api key status
-EU_STATUS_VERIFIED = False
-kv_store.set("US_MODE", "true")                  # Used below with eu_ping_get_account_values() # tracks api/api key status
+TEST_FUNCTIONS = test_scripts()                 # Refer to test_functions.Py - array of test functions for handling
+US_STATUS_VERIFIED = False                      # Used below with us_ping_get_account_values() # tracks api/api key status
+EU_STATUS_VERIFIED = False                      # Used below with eu_ping_get_account_values() # tracks api/api key status
+kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load
 
 
-
-# -------------------------- routes -------------------------------- #
+# -------------------------- Routes -------------------------------- #
 
 # Homepage
 @app.route('/', methods=['GET', 'POST'])  
 async def index():
-    
-
     
     test_functions_cleaned = {                          # Pretty print handling for script filenames/functions
         key: [test.split("::")[1] for test in tests]    # Remove file paths
         for key, tests in TEST_FUNCTIONS.items()
     }
 
-    org_ids = await us_ping_get_account_values()        # US org id check / account ping 
+    org_ids = await us_ping_get_account_values()        # US org id check / account ping - Returns array of org_id's
     org_ids = org_ids if org_ids is not None else []
 
-    eu_org_ids = await eu_ping_get_account_values()     # EU org id check / account ping 
+    eu_org_ids = await eu_ping_get_account_values()     # EU org id check / account ping - Returns array of org_id's
     eu_org_ids = eu_org_ids if eu_org_ids is not None else []
 
-    return render_template("index.html", 
+    return render_template("index.html",                                # Main index.html being served. Located in /templates/
                            org_ids=org_ids,
                            eu_org_ids=eu_org_ids,
                            test_functions=test_functions_cleaned,
@@ -74,7 +71,7 @@ async def index():
 
 
 # Account/org ping check
-@app.route('/verify', methods=['GET'])
+@app.route('/verify', methods=['GET']) #  TODO is this even used? remove? 
 async def verification_status():
     data = await us_ping_get_account_values()
     return data
@@ -83,12 +80,12 @@ async def verification_status():
 # Generated report endpoint
 @app.route('/report', methods=['GET', 'POST'])
 async def report():
-    ENV_STORE = kv_store                   # Initilize our custom env variable store (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                        # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     if request.method == 'POST':                # "Mode" check - Used for calling the Certcentral us api vs. Certcentral eu api (base_url)
         mode = request.args.get('us_mode')      # Checks for post argument boolean
         org = request.args.get('org')           # Gets org_id from argument
         ENV_STORE.set("US_MODE", mode)          # Sets env "mode" - Used for CCUS vs. CCEU API's
-        ENV_STORE.set("ORG_ID", org)           # Sets org_id env varible - Used by both CCUS and CCEU API's       
+        ENV_STORE.set("ORG_ID", org)            # Sets org_id env varible - Used by both CCUS and CCEU API's       
 
         selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
         if not selected_tests:
@@ -101,10 +98,10 @@ async def report():
                 if test_name in selected_tests:
                     full_selected_tests.append(test)
 
-        await process_defined_tests(full_selected_tests)            # conftest.py
+        await process_defined_tests(full_selected_tests)            # conftest.py - Main processing of selected tests to be ran
 
         
-        now = datetime.now()                                        # Date/time handling for report filenames - appends to "Report_****.Html"
+        now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
         formatted_time = now.strftime("%Y%m%d%H%M%S")
         source = resource_path('./templates/report.html')
 
@@ -137,7 +134,7 @@ async def report():
 # API key env variable form endpoint
 @app.route('/submit_', methods=['POST'])
 def submit_env_variables():
-    ENV_STORE = kv_store                   # Initilize our custom env variable store (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     arg = request.args.get('id')
     data = request.json
 
@@ -156,7 +153,7 @@ def list_directory():
     directory_path = resource_path('./templates/reports')
     
     try:
-        files = [os.path.splitext(f)[0] for f in os.listdir(directory_path) if f.endswith('.html')]  # list all files in path
+        files = [os.path.splitext(f)[0] for f in os.listdir(directory_path) if f.endswith('.html')]  # List all files in path
     except FileNotFoundError:
         return "Directory not found.", 404
 
@@ -185,12 +182,24 @@ def gen_keypair():
     keypair = json.loads(csr)
     return jsonify({"csr": keypair["csr"], "key": keypair["key"]})
 
-# -------------------------- end routes -------------------------------- #
+
+#  SSL Checker - Same that 'digicert.com/help' uses, but just the html <div> element is returned
+@app.route('/help')
+def help_check():
+    cn = request.args.get('cn')
+    if cn:
+        url = 'https://www.digicert.com/api/check-host.php'
+        data = {"host": f"{cn}"}
+        response = requests.post(url, data=data)
+        print(response.text)
+        return response.text
+    else:
+        return
 
 
-# -------------------------- functions -------------------------------- #
+# -------------------------- Functions -------------------------------- #
 
-# Default request helper - slightly different as this includes the base_url, 
+# Default api request helper - slightly different as this includes the base_url, 
 # rather then rely on the value in env
 def make_request(method, base_url, endpoint, headers, payload=None):
     url = f"{base_url}/{endpoint}"
@@ -202,7 +211,7 @@ def make_request(method, base_url, endpoint, headers, payload=None):
 #  Used on the CCUS and CCEU tabs within index.html
 async def us_ping_get_account_values():
     global US_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_US")
         api_key = ENV_STORE.get("DIGICERT_API_KEY_US")
@@ -212,7 +221,6 @@ async def us_ping_get_account_values():
         }
         endpoint = "organization"
         response = make_request("GET", base_url, endpoint, headers)
-        print(response.text)
         if response.status_code == 200:
             US_STATUS_VERIFIED = True
             data = json.loads(response.text)
@@ -234,7 +242,7 @@ async def us_ping_get_account_values():
 
 async def eu_ping_get_account_values():
     global EU_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_EU")
         api_key = ENV_STORE.get("DIGICERT_API_KEY_EU")
@@ -255,38 +263,15 @@ async def eu_ping_get_account_values():
                     })
             return org_ids
         else:
+            print(response)
             EU_STATUS_VERIFIED = False
     except ConnectionError as e:
         print(e)
         EU_STATUS_VERIFIED = False
         return
 
-# -------------------------- end functions -------------------------------- #
 
-# When the app is ran, this generates/checks for the "env.json" file.
-# Stored at "C:\users\$user\appdata\local\digi-harbinger\env.json
-
-def on_boot():
-    #ENV_STORE = kv_store
-                 # Initilize our custom env variable store (api keys, csr, key, urls, etc.)
-    try:
-        os.makedirs(APP_DIRECTORY, exist_ok=True)
-        if not os.path.exists(ENV_FILE):
-            kv_store.set("US_MODE", "true")
-            kv_store.set("DIGICERT_API_KEY_US", "")
-            kv_store.set("DIGICERT_API_KEY_EU", "")
-            kv_store.set("DIGICERT_BASE_URL_US", "https://www.digicert.com/services/v2")
-            kv_store.set("DIGICERT_BASE_URL_EU", "https://certcentral.digicert.eu/services/v2")
-            kv_store.set("CSR", "")
-            kv_store.set("PRIVATE_KEY", "")
-            kv_store.set("ORG_ID", "") 
-            kv_store.close()
-        else:
-            print("File already exists")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
+# ------------------------------- Main ------------------------------------ #
 
 # Defines the user's screen size so it can be used for app window placement
 def user_screen_size():
@@ -295,10 +280,8 @@ def user_screen_size():
     return screensize  # (x,y)
 
 
-# seperate flask function so waitress can be used (performance)
+# Seperate flask function so waitress can be used (performance)
 def start_flask(**server_kwargs):
-    
-    
     app = server_kwargs.pop("app", None)
     server_kwargs.pop("debug", None)
 
@@ -310,17 +293,17 @@ def start_flask(**server_kwargs):
 if __name__ == "__main__":
     
     if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
-        import pyi_splash        # this import error is okay - it's a pytest plugin for the splash screen when ran
+        import pyi_splash        # this import error is okay - it's a pytest plugin (hotload) for the splash screen 
         pyi_splash.update_text('UI Loaded ...')
         time.sleep(2)
         pyi_splash.close()
 
     
-    # on close function
+    # On close function
     def saybye():
         print("on_exit bye")
 
-    # App dimensions and placement in screen on load
+    # App dimensions and screen placement on load
     app_width = 1100
     app_height = 950
     screen_dimensions = user_screen_size()
@@ -338,6 +321,5 @@ if __name__ == "__main__":
         browser_path='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',  # Chrome dependant at the moment. I attempted to use Edge and it would crash on first run
         extra_flags = [f"--window-position={int(screen_x)},{int(screen_y)}"],       # Centers the app window within the user's main monitor
         on_shutdown=saybye,
-        #on_startup=on_boot
     ).run()
 

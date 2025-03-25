@@ -18,6 +18,7 @@ document.getElementById('gen_keypair_button').addEventListener('click', function
         });
         });
 
+
 /* ---------- Data Submission Handling ---------- */
 document.getElementById('api_key_us_form').addEventListener('submit', function(event) {
 	event.preventDefault();
@@ -49,7 +50,6 @@ document.getElementById('api_key_us_form').addEventListener('submit', function(e
 });
 
 
-
 document.getElementById('api_key_eu_form').addEventListener('submit', function(event) {
 	event.preventDefault();
 
@@ -78,7 +78,6 @@ document.getElementById('api_key_eu_form').addEventListener('submit', function(e
 			alert("An error occurred while. Try again.");
 		});
 });
-
 
 
 /* ---------- Loading overlay configs ---------- */
@@ -214,7 +213,7 @@ testCheckboxes_EU.forEach(checkbox => {
 });
 
 
-/* ---------- add event listener - checkbox - based on data-group attribute ---------- */
+/* ---------- Add event listener - checkbox - based on data-group attribute ---------- */
 document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
         const group = this.dataset.group; // get group name
@@ -230,7 +229,7 @@ document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox
 });
 
 
-/* ---------- check if input is blank helper ---------- */
+/* ---------- Check if input is blank helper ---------- */
 function isInputBlank(inputId) {
 	const inputValue = document.getElementById(inputId);
 	if (inputValue == null) {
@@ -243,7 +242,7 @@ function isInputBlank(inputId) {
 };
 
 
-/* ---------- title bar / hud ---------- */
+/* ---------- Title bar / hud ---------- */
 const elementToWrap = document.getElementById('title');
 const newDiv = document.createElement('div');
 elementToWrap.parentNode.insertBefore(newDiv, elementToWrap);
