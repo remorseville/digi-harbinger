@@ -12,8 +12,9 @@ from flask import send_from_directory
 from flaskwebgui import FlaskUI    
 
 # Local file imports
-from conftest import process_defined_tests
+from conftest import process_defined_tests  # Configuration file for the pytest module
 from tests.test_functions import test_scripts
+from tests.test_functions import cis_test_scripts
 from tests import crypto
 from utils.sqlite_kv_store import kv_store
 
@@ -37,9 +38,12 @@ def resource_path(relative_path):           # Dynamic path handling for file ref
 
 
 # Globals
-TEST_FUNCTIONS = test_scripts()                 # Refer to test_functions.Py - array of test functions for handling
+TEST_FUNCTIONS = test_scripts()                 # Refer to test_functions.Py - array of CertCentral API test functions for handling
+CIS_TEST_FUNCTIONS = cis_test_scripts()         # Refer to test_functions.Py - array of CIS API test functions for handling
 US_STATUS_VERIFIED = False                      # Used below with us_ping_get_account_values() # tracks api/api key status
 EU_STATUS_VERIFIED = False                      # Used below with eu_ping_get_account_values() # tracks api/api key status
+CIS_STATUS_VERIFIED = False
+CIS_VALIDATION_STATUS_VERIFIED = False
 kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load
 
 
@@ -54,19 +58,30 @@ async def index():
         for key, tests in TEST_FUNCTIONS.items()
     }
 
+    cis_test_functions_cleaned = {                      # Pretty print handling for CIS script filenames/functions
+        key: [test.split("::")[1] for test in tests]    # Remove file paths
+        for key, tests in CIS_TEST_FUNCTIONS.items()
+    }
+
     org_ids = await us_ping_get_account_values()        # US org id check / account ping - Returns array of org_id's
     org_ids = org_ids if org_ids is not None else []
 
     eu_org_ids = await eu_ping_get_account_values()     # EU org id check / account ping - Returns array of org_id's
     eu_org_ids = eu_org_ids if eu_org_ids is not None else []
 
+    await cis_ping_get_account_values()                 # CIS Issuance API ping
+    await cis_validation_ping_get_account_values()      # CIS Validation API ping
+
     return render_template("index.html",                                # Main index.html being served. Located in /templates/
                            org_ids=org_ids,
                            eu_org_ids=eu_org_ids,
                            test_functions=test_functions_cleaned,
                            eu_test_functions=test_functions_cleaned,
+                           cis_test_functions = cis_test_functions_cleaned,
                            status_verified=US_STATUS_VERIFIED,
                            eu_status_verified=EU_STATUS_VERIFIED,
+                           cis_status_verified=CIS_STATUS_VERIFIED,
+                           cis_validation_status_verified=CIS_VALIDATION_STATUS_VERIFIED,
                            )
 
 
@@ -82,46 +97,81 @@ async def verification_status():
 async def report():
     ENV_STORE = kv_store                        # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     if request.method == 'POST':                # "Mode" check - Used for calling the Certcentral us api vs. Certcentral eu api (base_url)
-        mode = request.args.get('us_mode')      # Checks for post argument boolean
-        org = request.args.get('org')           # Gets org_id from argument
-        ENV_STORE.set("US_MODE", mode)          # Sets env "mode" - Used for CCUS vs. CCEU API's
-        ENV_STORE.set("ORG_ID", org)            # Sets org_id env varible - Used by both CCUS and CCEU API's       
 
-        selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
-        if not selected_tests:
-            return jsonify({"error": "No tests selected"}), 400
+        cis_api = request.args.get('api')
+        if cis_api:
+            selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
+            if not selected_tests:
+                return jsonify({"error": "No tests selected"}), 400
 
-        full_selected_tests = []                                    # Final array
-        for key, tests in TEST_FUNCTIONS.items():                   # Global TEST_FUNCTIONS
-            for test in tests:
-                test_name = test.split("::")[1]                     # Extract test names
-                if test_name in selected_tests:
-                    full_selected_tests.append(test)
+            full_selected_tests = []                                    # Final array
+            for key, tests in CIS_TEST_FUNCTIONS.items():               # Global CIS_TEST_FUNCTIONS
+                for test in tests:
+                    test_name = test.split("::")[1]                     # Extract test names
+                    if test_name in selected_tests:
+                        full_selected_tests.append(test)
 
-        await process_defined_tests(full_selected_tests)            # conftest.py - Main processing of selected tests to be ran
+            await process_defined_tests(full_selected_tests)            # conftest.py - Main processing of selected tests to be ran
 
-        
-        now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
-        formatted_time = now.strftime("%Y%m%d%H%M%S")
-        source = resource_path('./templates/report.html')
+            now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
+            formatted_time = now.strftime("%Y%m%d%H%M%S")
+            source = resource_path('./templates/report.html')
+            destination = resource_path(f'./templates/reports/CIS_report_{formatted_time}.html')  # Custom report titles
+            
+            try:
+                os.makedirs(os.path.dirname(destination), exist_ok=True)    # creates the "Templates/reports" directory  
+                shutil.copy2(source, destination)                           # copies generated "Report.Html" to "Templates/reports"
+                print(f"File copied from {source} to {destination}")
+            except FileNotFoundError:
+                print(f"Source file {source} not found.")
+            except PermissionError:
+                print(f"Permission denied for {destination}.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
-        if mode == "true":
-            destination = resource_path(f'./templates/reports/CCUS_report_{formatted_time}.html')  # Custom report titles
+            return render_template('report.html')  
         else:
-            destination = resource_path(f'./templates/reports/CCEU_report_{formatted_time}.html')
 
-        try:
-            os.makedirs(os.path.dirname(destination), exist_ok=True)    # creates the "Templates/reports" directory  
-            shutil.copy2(source, destination)                           # copies generated "Report.Html" to "Templates/reports"
-            print(f"File copied from {source} to {destination}")
-        except FileNotFoundError:
-            print(f"Source file {source} not found.")
-        except PermissionError:
-            print(f"Permission denied for {destination}.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            mode = request.args.get('us_mode')      # Checks for post argument boolean
+            org = request.args.get('org')           # Gets org_id from argument
+            ENV_STORE.set("US_MODE", mode)          # Sets env "mode" - Used for CCUS vs. CCEU API's
+            ENV_STORE.set("ORG_ID", org)            # Sets org_id env varible - Used by both CCUS and CCEU API's       
 
-        return render_template('report.html')                           # returns the generated report (or last saved "Report.Html" on any failure)
+            selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
+            if not selected_tests:
+                return jsonify({"error": "No tests selected"}), 400
+
+            full_selected_tests = []                                    # Final array
+            for key, tests in TEST_FUNCTIONS.items():                   # Global TEST_FUNCTIONS
+                for test in tests:
+                    test_name = test.split("::")[1]                     # Extract test names
+                    if test_name in selected_tests:
+                        full_selected_tests.append(test)
+
+            await process_defined_tests(full_selected_tests)            # conftest.py - Main processing of selected tests to be ran
+
+            
+            now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
+            formatted_time = now.strftime("%Y%m%d%H%M%S")
+            source = resource_path('./templates/report.html')
+
+            if mode == "true":
+                destination = resource_path(f'./templates/reports/CCUS_report_{formatted_time}.html')  # Custom report titles
+            else:
+                destination = resource_path(f'./templates/reports/CCEU_report_{formatted_time}.html')
+
+            try:
+                os.makedirs(os.path.dirname(destination), exist_ok=True)    # creates the "Templates/reports" directory  
+                shutil.copy2(source, destination)                           # copies generated "Report.Html" to "Templates/reports"
+                print(f"File copied from {source} to {destination}")
+            except FileNotFoundError:
+                print(f"Source file {source} not found.")
+            except PermissionError:
+                print(f"Permission denied for {destination}.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+            return render_template('report.html')                           # returns the generated report (or last saved "Report.Html" on any failure)
     else:
 
         arg = request.args.get('id')                                    # get request handling - used for older report view
@@ -144,6 +194,10 @@ def submit_env_variables():
 
     elif arg == "api_key_eu":
         ENV_STORE.set("DIGICERT_API_KEY_EU", data.get('api_key') )
+        return jsonify({"message": "Key received successfully!"})
+    
+    elif arg == "api_key_cis":
+        ENV_STORE.set("CIS_API_KEY", data.get('api_key') )
         return jsonify({"message": "Key received successfully!"})
 
 
@@ -269,7 +323,53 @@ async def eu_ping_get_account_values():
         print(e)
         EU_STATUS_VERIFIED = False
         return
+    
 
+
+async def cis_ping_get_account_values():
+    global CIS_STATUS_VERIFIED
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    try:
+        base_url = ENV_STORE.get("CIS_BASE_URL")
+        api_key = ENV_STORE.get("CIS_API_KEY")
+        headers = {
+            "X-DC-DEVKEY": api_key,
+            "Content-Type": "application/json"
+        }
+        endpoint = "cis/health/heartbeat"
+        response = make_request("GET", base_url, endpoint, headers)
+        if response.status_code == 204:
+            CIS_STATUS_VERIFIED = True
+        else:
+            print(response)
+            CIS_STATUS_VERIFIED = False
+    except ConnectionError as e:
+        print(e)
+        CIS_STATUS_VERIFIED = False
+        return
+
+
+async def cis_validation_ping_get_account_values():
+    global CIS_VALIDATION_STATUS_VERIFIED
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    try:
+        base_url = ENV_STORE.get("CIS_BASE_URL")
+        api_key = ENV_STORE.get("CIS_API_KEY")
+        headers = {
+            "X-DC-DEVKEY": api_key,
+            "Content-Type": "application/json"
+        }
+        endpoint = "validation/health/heartbeat"
+        response = make_request("GET", base_url, endpoint, headers)
+        if response.status_code == 204:
+            CIS_VALIDATION_STATUS_VERIFIED = True
+        else:
+            print(response)
+            CIS_VALIDATION_STATUS_VERIFIED = False
+    except ConnectionError as e:
+        print(e)
+        CIS_VALIDATION_STATUS_VERIFIED = False
+        return
 
 # ------------------------------- Main ------------------------------------ #
 
@@ -315,6 +415,7 @@ if __name__ == "__main__":
         server_kwargs={
             "app": app,
             "port": 5444,
+            "host": "localhost"
         },
         width=app_width,
         height=app_height,

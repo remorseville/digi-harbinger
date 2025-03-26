@@ -4,7 +4,7 @@
 }
 
 html * {
-    font-family: UnifontMedium, ui-monospace, monospace !important;
+    font-family: UnifontMedium, ui-monospace, monospace;
 }
 
 body {
@@ -267,6 +267,7 @@ to {opacity: 0}
     border: 1px solid #ccc;
     background-color: #f1f1f1;
     display: inline-flex;
+    width: 100%;
 
 }
 
@@ -330,4 +331,73 @@ to {opacity: 0}
     display: flex;
     grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
     gap: 2rem;
+}
+
+/* Tls Checker*/
+.certificate-report {
+    width: 80%;
+    margin: 0 auto;
+    background-color: #fefefe;
+    
+}
+
+.certificate-report h2 {
+    color: #2c3e50;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+.certificate-report h2.ok {
+    color: #015a99; /* Blue for OK status */
+}
+
+.certificate-report h2.warning {
+    color: #ffb546; 
+}
+
+.certificate-report h2.error {
+    color: #d9482f; 
+}
+
+.certificate-report p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.certificate-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+}
+
+.certificate-report table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.certificate-report #CertDetails {
+    background-color: #fff;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+}
+
+.certificate-report #chain table {
+    background-color: #fff;
+}
+
+.certificate-report #chain img {
+    display: block;
+    margin: 0 auto;
+}
+
+.cert-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
+}
+
+/* Specific icon styles */
+.cert-icon svg {
+    border: 0 !important; /* Override any inline styles */
 }

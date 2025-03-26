@@ -24,10 +24,11 @@ window.addEventListener("load", (event) => {
   newDiv.appendChild(link);
   newDiv.appendChild(elementToWrap);
   newDiv.setAttribute('id', 'title-bar-div2'); 
-  newDiv.setAttribute('class', 'title-bar');
+  newDiv.setAttribute('class', 'sticky-nav title-bar');
+  newDiv.setAttribute('z-index', '20');
   link.setAttribute('id', 'home-link');
   link.setAttribute('href', './');
-  link.setAttribute('z-index', '10');
+  link.setAttribute('z-index', '30');
   link.innerHTML = "Return to Home";
 
   // Insert of favicon to 'report.html'

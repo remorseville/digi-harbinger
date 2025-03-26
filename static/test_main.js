@@ -79,6 +79,35 @@ document.getElementById('api_key_eu_form').addEventListener('submit', function(e
 		});
 });
 
+document.getElementById('api_key_cis_form').addEventListener('submit', function(event) {
+	event.preventDefault();
+
+	// Get form data
+	const apiKey = document.getElementById('api_key_cis').value;
+
+	// Fetch request to save
+	fetch('/submit_?id=api_key_cis', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				api_key: apiKey
+			}),
+		})
+		.then(response => response.json())
+		.then(data => {
+			console.log("Server response:", data);
+			alert("API Key Submitted Successfully!");
+			window.location.reload();
+		})
+		.catch(error => {
+			console.error("Error:", error);
+			alert("An error occurred while. Try again.");
+		});
+});
+
+
 
 /* ---------- Loading overlay configs ---------- */
 var configs = {
@@ -183,6 +212,17 @@ selectAllCheckbox_EU.addEventListener('change', function() {
 	});
 });
 
+// CIS
+const selectAllCheckbox_CIS = document.getElementById('cis_selectAll');
+const testCheckboxes_CIS = document.querySelectorAll('input[name="cis_test"]');
+
+selectAllCheckbox_CIS.addEventListener('change', function() {
+	testCheckboxes_CIS.forEach(checkbox => {
+		checkbox.checked = selectAllCheckbox_CIS.checked;
+	});
+});
+
+
 
 /* ---------- ensure "Select all" is unchecked when any other is unchecked ---------- */
 // US
@@ -211,6 +251,20 @@ testCheckboxes_EU.forEach(checkbox => {
 		}
 	});
 });
+
+// CIS
+testCheckboxes_CIS.forEach(checkbox => {
+	checkbox.addEventListener('change', function() {
+		if (!this.checked) {
+			selectAllCheckbox_CIS.checked = false;
+		} else {
+			// Otherwise, check all if checked
+			const allChecked_CIS = Array.from(testCheckboxes_CIS).every(cb => cb.checked);
+			selectAllCheckbox_CIS.checked = allChecked_CIS;
+		}
+	});
+});
+
 
 
 /* ---------- Add event listener - checkbox - based on data-group attribute ---------- */
@@ -351,24 +405,39 @@ async function runTestsEU() {
 }
 
 
-function openPage(pageName,elmnt,color) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  tablinks = document.getElementsByClassName("tablink");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].style.backgroundColor = "";
-  }
-  document.getElementById(pageName).style.display = "block";
-  elmnt.style.backgroundColor = color;
+async function runTestsCIS() {
+    let status = document.getElementById('cis_status');
+	if (status == null  ) {
+		alert("Save ENV variables before you continue.");
+	} else {
+		let form = document.getElementById('cis_testForm');
+		let checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#cis_selectAll)');
+		let selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+
+		
+		if (checkboxes.length !== 0){
+		    let response = await fetch('/report?api=cis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    selected_tests: selectedTests,
+                }),
+            })
+            .then(loading());
+
+            let data = await response;
+            window.location.href = "/report?sort=original";
+            JsLoadingOverlay.hide();
+
+        } else {
+            alert("No tests selected!");
+        }
+	}
 }
 
-$('ul li').on('click', function() {
-	$('li').removeClass('active');
-	$(this).addClass('active');
-});
+
 
 
 
@@ -422,3 +491,51 @@ function fetchDirectory() {
     }
 
 
+
+
+async function tlsChecker() {
+    const common_name = document.getElementById("tls_check_label_input");
+    const tls_div = document.getElementById("tls_check_div");
+	loading()
+    
+    try {
+        const response = await fetch('/help?cn=' + encodeURIComponent(common_name.value), {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Network error');
+        
+        const htmlContent = await response.text();
+        tls_div.innerHTML = htmlContent;
+        
+        // Replace all images with SVGs
+        replaceCertificateIcons(tls_div);
+		JsLoadingOverlay.hide();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        tls_div.innerHTML = '<p>Error loading TLS information</p>';
+		JsLoadingOverlay.hide();
+    }
+}
+
+function replaceCertificateIcons(container) {
+    container.querySelectorAll('img').forEach(img => {
+        const icon = document.createElement('span');
+        icon.className = 'material-icons cert-icon';
+        
+        if (img.src.includes('server-cert')) {
+            icon.textContent = 'verified_user';
+            icon.style.color = '#4CAF50';
+        } else if (img.src.includes('intermediate-cert')) {
+            icon.textContent = 'security';
+            icon.style.color = '#2196F3';
+        } else {
+            icon.textContent = 'link';
+            icon.style.color = '#9E9E9E';
+        }
+        
+        img.replaceWith(icon);
+    });
+}

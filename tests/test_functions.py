@@ -66,3 +66,20 @@ def test_scripts():
         ]
     }
     return test_group
+
+
+def cis_test_scripts():
+
+    cis_test_group = {
+        
+        "issuance": [
+            "./tests_cis/issuance.py::test_issuance_heartbeat",
+
+        ],
+        "validation": [
+            "./tests_cis/validation.py::test_validation_heartbeat",
+
+        ],
+    }
+    
+    return cis_test_group
