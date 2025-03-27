@@ -395,6 +395,7 @@ html * {
     position: sticky;
     top: 0;
     overflow: hidden;
+    z-index: 30;
     
   }
 
@@ -403,7 +404,7 @@ html * {
   </head>
   <body>
     <h1 id="title">Digi-Harbinger</h1>
-    <p>Report generated on 26-Mar-2025 at 08:20:27 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
+    <p>Report generated on 27-Mar-2025 at 10:25:31 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
         v4.1.1</p>
     <div id="environment-header">
       <h2>Environment</h2>
@@ -458,7 +459,7 @@ html * {
         <div class="additional-summary prefix">
           <script type='text/javascript' src='{{url_for("custom_static_js_css",filename="main.js")}}'></script>
         </div>
-        <p class="run-count">1 test took 193 ms.</p>
+        <p class="run-count">1 test took 1 ms.</p>
         <p class="filter">(Un)check the boxes to filter the results.</p>
         <div class="summary__reload">
           <div class="summary__reload__button hidden" onclick="location.reload()">
@@ -468,10 +469,10 @@ html * {
         <div class="summary__spacer"></div>
         <div class="controls">
           <div class="filters">
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" disabled/>
-            <span class="failed">0 Failed,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" />
-            <span class="passed">1 Passed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" />
+            <span class="failed">1 Failed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" disabled/>
+            <span class="passed">0 Passed,</span>
             <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled/>
             <span class="skipped">0 Skipped,</span>
             <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled/>
@@ -505,7 +506,7 @@ html * {
     </table>
   </body>
   <footer>
-    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.12.5&#34;, &#34;Platform&#34;: &#34;Windows-11-10.0.26100-SP0&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;8.3.5&#34;, &#34;pluggy&#34;: &#34;1.5.0&#34;}, &#34;Plugins&#34;: {&#34;asyncio&#34;: &#34;0.25.3&#34;, &#34;html&#34;: &#34;4.1.1&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;timeout&#34;: &#34;2.3.1&#34;, &#34;xdist&#34;: &#34;3.6.1&#34;}}, &#34;tests&#34;: {&#34;tests/account.py::test_account_details&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/account.py::test_account_details&#34;, &#34;duration&#34;: &#34;193 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/account.py::test_account_details&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;193 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;----------------------------- Captured stdout call -----------------------------\n{\n    &amp;quot;id&amp;quot;: 1707439,\n    &amp;quot;primary_organization_id&amp;quot;: 1903266,\n    &amp;quot;primary_organization_name&amp;quot;: &amp;quot;DigiCert Sub LLC&amp;quot;,\n    &amp;quot;primary_organization_country&amp;quot;: &amp;quot;us&amp;quot;,\n    &amp;quot;make_renewal_calls&amp;quot;: true,\n    &amp;quot;express_install_enabled&amp;quot;: false,\n    &amp;quot;admin_email&amp;quot;: &amp;quot;jeff&amp;amp;nate@digicert.com&amp;quot;,\n    &amp;quot;display_rep&amp;quot;: true,\n    &amp;quot;rep_name&amp;quot;: &amp;quot;Sales Team&amp;quot;,\n    &amp;quot;rep_phone&amp;quot;: &amp;quot;*&amp;quot;,\n    &amp;quot;rep_email&amp;quot;: &amp;quot;sales@digicert.com&amp;quot;,\n    &amp;quot;rep_id&amp;quot;: 3403,\n    &amp;quot;rep_photo_id&amp;quot;: 0,\n    &amp;quot;balance_negative_limit&amp;quot;: 0,\n    &amp;quot;root_container_id&amp;quot;: 644653,\n    &amp;quot;cert_transparency&amp;quot;: &amp;quot;embed&amp;quot;,\n    &amp;quot;cert_central_type&amp;quot;: &amp;quot;enterprise&amp;quot;,\n    &amp;quot;billing_account_id&amp;quot;: 1707439,\n    &amp;quot;billing_account_name&amp;quot;: &amp;quot;DigiCert Sub LLC&amp;quot;,\n    &amp;quot;language_id&amp;quot;: 1,\n    &amp;quot;migrated&amp;quot;: false,\n    &amp;quot;has_auth_key&amp;quot;: true,\n    &amp;quot;client_mgr_photo_id&amp;quot;: 0,\n    &amp;quot;ent_support_plan&amp;quot;: &amp;quot;1&amp;quot;,\n    &amp;quot;default_country&amp;quot;: &amp;quot;us&amp;quot;\n}\n&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;Digi-Harbinger&#34;}"></div>
+    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.12.5&#34;, &#34;Platform&#34;: &#34;Windows-11-10.0.26100-SP0&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;8.3.5&#34;, &#34;pluggy&#34;: &#34;1.5.0&#34;}, &#34;Plugins&#34;: {&#34;asyncio&#34;: &#34;0.25.3&#34;, &#34;html&#34;: &#34;4.1.1&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;timeout&#34;: &#34;2.3.1&#34;, &#34;xdist&#34;: &#34;3.6.1&#34;}}, &#34;tests&#34;: {&#34;tests_cis/issuance.py::test_issuance_heartbeat&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests_cis/issuance.py::test_issuance_heartbeat&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests_cis/issuance.py::test_issuance_heartbeat&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;def test_issuance_heartbeat():\n        endpoint = &amp;quot;cis/health/heartbeat&amp;quot;\n&amp;gt;       url_header = env_prep()\n\ntests_cis\\issuance.py:39: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    def env_prep():\n    \n        base_url = ENV_STORE.get(&amp;quot;CIS_BASE_URL&amp;quot;)\n        api_key = keyring.get_password(&amp;quot;digi-harbinger&amp;quot;, &amp;quot;CIS_API_KEY&amp;quot;)\n        if api_key == None:\n&amp;gt;           url_header = [base_url, headers]\nE           UnboundLocalError: cannot access local variable &amp;#x27;headers&amp;#x27; where it is not associated with a value\n\ntests_cis\\issuance.py:22: UnboundLocalError\n&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;Digi-Harbinger&#34;}"></div>
     <script>
       (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')

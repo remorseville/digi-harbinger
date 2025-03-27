@@ -27,11 +27,8 @@ class SQLiteKeyValueStore:
     # Default values (only inserted if keys don't exist)
     _DEFAULT_VALUES = {
         "US_MODE": "true",
-        "DIGICERT_API_KEY_US": "",
-        "DIGICERT_API_KEY_EU": "",
         "DIGICERT_BASE_URL_US": "https://www.digicert.com/services/v2",
         "DIGICERT_BASE_URL_EU": "https://certcentral.digicert.eu/services/v2",
-        "CIS_API_KEY": "",
         "CIS_BASE_URL": "https://ws.digicert.com/platform",
         "CSR": "",
         "PRIVATE_KEY": "",

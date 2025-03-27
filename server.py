@@ -9,7 +9,8 @@ import importlib
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
-from flaskwebgui import FlaskUI    
+from flaskwebgui import FlaskUI
+import keyring
 
 # Local file imports
 from conftest import process_defined_tests  # Configuration file for the pytest module
@@ -20,9 +21,6 @@ from utils.sqlite_kv_store import kv_store
 
 
 # -------------------------- Environment -------------------------------- #
-
-kv_store = kv_store                         # Load our env sql db
-
 
 app = Flask(__name__)                       # Main Flask App
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Required for hot-reloading of html otherwise you'll see cached versions
@@ -38,13 +36,14 @@ def resource_path(relative_path):           # Dynamic path handling for file ref
 
 
 # Globals
-TEST_FUNCTIONS = test_scripts()                 # Refer to test_functions.Py - array of CertCentral API test functions for handling
-CIS_TEST_FUNCTIONS = cis_test_scripts()         # Refer to test_functions.Py - array of CIS API test functions for handling
+TEST_FUNCTIONS = test_scripts()                 # Refer to test_functions.Py - array of CertCentral API test names functions for handling
+CIS_TEST_FUNCTIONS = cis_test_scripts()         # Refer to test_functions.Py - array of CIS API test names functions for handling
 US_STATUS_VERIFIED = False                      # Used below with us_ping_get_account_values() # tracks api/api key status
 EU_STATUS_VERIFIED = False                      # Used below with eu_ping_get_account_values() # tracks api/api key status
-CIS_STATUS_VERIFIED = False
-CIS_VALIDATION_STATUS_VERIFIED = False
-kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load
+CIS_STATUS_VERIFIED = False                     # Used below with cis_ping_get_account_values() # tracks api/api key status
+CIS_VALIDATION_STATUS_VERIFIED = False          # Used below with cis_validation_ping_get_account_values() # tracks api/api key status
+kv_store = kv_store                             # Load our env sql db
+kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load - Toggle used for CCUS vs CCEU API base_url's
 
 
 # -------------------------- Routes -------------------------------- #
@@ -53,12 +52,12 @@ kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load
 @app.route('/', methods=['GET', 'POST'])  
 async def index():
     
-    test_functions_cleaned = {                          # Pretty print handling for script filenames/functions
+    test_functions_cleaned = {                          # Pretty print handling for script filenames/functions (test_functions.py)
         key: [test.split("::")[1] for test in tests]    # Remove file paths
         for key, tests in TEST_FUNCTIONS.items()
     }
 
-    cis_test_functions_cleaned = {                      # Pretty print handling for CIS script filenames/functions
+    cis_test_functions_cleaned = {                      # Pretty print handling for CIS script filenames/functions (test_functions.py)
         key: [test.split("::")[1] for test in tests]    # Remove file paths
         for key, tests in CIS_TEST_FUNCTIONS.items()
     }
@@ -95,9 +94,10 @@ async def verification_status():
 # Generated report endpoint
 @app.route('/report', methods=['GET', 'POST'])
 async def report():
-    ENV_STORE = kv_store                        # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                        # Initilize our custom env variable store db (csr, key, urls, etc.)
     if request.method == 'POST':                # "Mode" check - Used for calling the Certcentral us api vs. Certcentral eu api (base_url)
 
+        # CIS API Handling
         cis_api = request.args.get('api')
         if cis_api:
             selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
@@ -130,8 +130,10 @@ async def report():
                 print(f"An error occurred: {e}")
 
             return render_template('report.html')  
-        else:
+        
 
+        # CCUS/CCEU API Handling
+        else:
             mode = request.args.get('us_mode')      # Checks for post argument boolean
             org = request.args.get('org')           # Gets org_id from argument
             ENV_STORE.set("US_MODE", mode)          # Sets env "mode" - Used for CCUS vs. CCEU API's
@@ -184,20 +186,24 @@ async def report():
 # API key env variable form endpoint
 @app.route('/submit_', methods=['POST'])
 def submit_env_variables():
-    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
     arg = request.args.get('id')
     data = request.json
 
+    service_name = "digi-harbinger"  # Keyring service-name
+
     if arg == "api_key_us":
-        ENV_STORE.set("DIGICERT_API_KEY_US", data.get('api_key') )
+        env_var_name = "DIGICERT_API_KEY_US"
+        keyring.set_password(service_name, env_var_name, data.get('api_key'))  # Save CCUS API key to keyring
         return jsonify({"message": "Key received successfully!"})
 
     elif arg == "api_key_eu":
-        ENV_STORE.set("DIGICERT_API_KEY_EU", data.get('api_key') )
+        env_var_name = "DIGICERT_API_KEY_EU"
+        keyring.set_password(service_name, env_var_name, data.get('api_key'))  # Save CCEU API key to keyring
         return jsonify({"message": "Key received successfully!"})
     
     elif arg == "api_key_cis":
-        ENV_STORE.set("CIS_API_KEY", data.get('api_key') )
+        env_var_name = "CIS_API_KEY"
+        keyring.set_password(service_name, env_var_name, data.get('api_key'))  # Save CIS API key to keyring
         return jsonify({"message": "Key received successfully!"})
 
 
@@ -265,10 +271,10 @@ def make_request(method, base_url, endpoint, headers, payload=None):
 #  Used on the CCUS and CCEU tabs within index.html
 async def us_ping_get_account_values():
     global US_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db (csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_US")
-        api_key = ENV_STORE.get("DIGICERT_API_KEY_US")
+        api_key = keyring.get_password("digi-harbinger", "DIGICERT_API_KEY_US")
         headers = {
             "X-DC-DEVKEY": api_key,
             "Content-Type": "application/json"
@@ -296,10 +302,10 @@ async def us_ping_get_account_values():
 
 async def eu_ping_get_account_values():
     global EU_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db ( csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_EU")
-        api_key = ENV_STORE.get("DIGICERT_API_KEY_EU")
+        api_key = keyring.get_password("digi-harbinger", "DIGICERT_API_KEY_EU")
         headers = {
             "X-DC-DEVKEY": api_key,
             "Content-Type": "application/json"
@@ -328,21 +334,26 @@ async def eu_ping_get_account_values():
 
 async def cis_ping_get_account_values():
     global CIS_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db ( csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("CIS_BASE_URL")
-        api_key = ENV_STORE.get("CIS_API_KEY")
+        api_key = keyring.get_password("digi-harbinger", "CIS_API_KEY")
         headers = {
             "X-DC-DEVKEY": api_key,
             "Content-Type": "application/json"
         }
-        endpoint = "cis/health/heartbeat"
-        response = make_request("GET", base_url, endpoint, headers)
-        if response.status_code == 204:
-            CIS_STATUS_VERIFIED = True
-        else:
-            print(response)
+        
+        if api_key == None:
             CIS_STATUS_VERIFIED = False
+            return
+        else: 
+            endpoint = "cis/health/heartbeat"
+            response = make_request("GET", base_url, endpoint, headers)
+            if response.status_code == 204:
+                CIS_STATUS_VERIFIED = True
+            else:
+                print(response)
+                CIS_STATUS_VERIFIED = False
     except ConnectionError as e:
         print(e)
         CIS_STATUS_VERIFIED = False
@@ -351,21 +362,26 @@ async def cis_ping_get_account_values():
 
 async def cis_validation_ping_get_account_values():
     global CIS_VALIDATION_STATUS_VERIFIED
-    ENV_STORE = kv_store                   # Initilize our custom env variable store db (api keys, csr, key, urls, etc.)
+    ENV_STORE = kv_store                   # Initilize our custom env variable store db ( csr, key, urls, etc.)
     try:
         base_url = ENV_STORE.get("CIS_BASE_URL")
-        api_key = ENV_STORE.get("CIS_API_KEY")
+        api_key = keyring.get_password("digi-harbinger", "CIS_API_KEY")
         headers = {
             "X-DC-DEVKEY": api_key,
             "Content-Type": "application/json"
         }
-        endpoint = "validation/health/heartbeat"
-        response = make_request("GET", base_url, endpoint, headers)
-        if response.status_code == 204:
-            CIS_VALIDATION_STATUS_VERIFIED = True
-        else:
-            print(response)
+
+        if api_key == None:
             CIS_VALIDATION_STATUS_VERIFIED = False
+            return
+        else: 
+            endpoint = "validation/health/heartbeat"
+            response = make_request("GET", base_url, endpoint, headers)
+            if response.status_code == 204:
+                CIS_VALIDATION_STATUS_VERIFIED = True
+            else:
+                print(response)
+                CIS_VALIDATION_STATUS_VERIFIED = False
     except ConnectionError as e:
         print(e)
         CIS_VALIDATION_STATUS_VERIFIED = False

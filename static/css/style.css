@@ -401,3 +401,10 @@ to {opacity: 0}
 .cert-icon svg {
     border: 0 !important; /* Override any inline styles */
 }
+
+#navbar {
+    position: sticky;
+    top: 0;
+    overflow: hidden;
+    
+  }

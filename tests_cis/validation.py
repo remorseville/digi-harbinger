@@ -1,5 +1,5 @@
-import json
 import requests
+import keyring
 
 # Local file imports
 from utils.sqlite_kv_store import kv_store
@@ -17,7 +17,7 @@ def make_request(method, base_url, endpoint, headers, payload=None):
 def env_prep():
     
     base_url = ENV_STORE.get("CIS_BASE_URL")
-    api_key = ENV_STORE.get("CIS_API_KEY")
+    api_key = keyring.get_password("digi-harbinger", "CIS_API_KEY")
 
     headers = {
                 "X-DC-DEVKEY": api_key,

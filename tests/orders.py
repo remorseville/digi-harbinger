@@ -1,5 +1,6 @@
 import json
 import requests
+import keyring
 
 # Local file imports
 from utils.sqlite_kv_store import kv_store
@@ -19,10 +20,10 @@ def locale_check():
     
     if mode == "true":
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_US")
-        api_key = ENV_STORE.get("DIGICERT_API_KEY_US")
+        api_key = keyring.get_password("digi-harbinger", "DIGICERT_API_KEY_US")
     else:
         base_url = ENV_STORE.get("DIGICERT_BASE_URL_EU")
-        api_key = ENV_STORE.get("DIGICERT_API_KEY_EU")
+        api_key = keyring.get_password("digi-harbinger", "DIGICERT_API_KEY_EU")
     headers = {
                 "X-DC-DEVKEY": api_key,
                 "Content-Type": "application/json"
