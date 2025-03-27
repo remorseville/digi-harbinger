@@ -408,3 +408,21 @@ to {opacity: 0}
     overflow: hidden;
     
   }
+
+
+  .visible-scrollbar {
+    display: block;
+    overflow: auto;
+    height: 60em;
+  }
+  
+  .visible-scrollbar::-webkit-scrollbar {
+    background:transparent;
+    width: 3px;
+  }
+  
+  .visible-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #acacac;
+      border-radius: 50px;
+      height: 120px;
+  }

@@ -150,7 +150,7 @@ async def report():
                     if test_name in selected_tests:
                         full_selected_tests.append(test)
 
-            await process_defined_tests(full_selected_tests)            # conftest.py - Main processing of selected tests to be ran
+            await process_defined_tests(full_selected_tests)            # conftest.py (Pytest) - Main processing of selected tests to be ran
 
             
             now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
