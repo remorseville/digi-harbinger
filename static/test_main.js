@@ -1,13 +1,15 @@
 
+/** 
+Keypair Gen Handling
 
+	Fetch request to flask endpoint, creating a key and CSR. No parameters used.
+	Returns PEM text to display on "CSR/Key" tab within app
 
-/* ---------- Keypair Gen Handling  ---------- */
+*/ 
 document.getElementById('gen_keypair_button').addEventListener('click', function() {
-    // Fetch data from the Flask endpoint
     fetch('/keypair')
         .then(response => response.json())
         .then(data => {
-            // Update the text areas with the results
             document.getElementById('csr_result').value = data.csr;
             document.getElementById('key_result').value = data.key;
         })
@@ -19,21 +21,23 @@ document.getElementById('gen_keypair_button').addEventListener('click', function
         });
 
 
-/* ---------- Data Submission Handling ---------- */
+/** 
+API Key Submission Handling
+
+	Fetch request to flask endpoint, saving submitted API key. Used for CCUS, CCEU and CIS tabs. 
+	3 version below. One for each API.
+	
+*/
 document.getElementById('api_key_us_form').addEventListener('submit', function(event) {
 	event.preventDefault();
-
-	// Get form data
 	const apiKey = document.getElementById('api_key_us').value;
 
-	// Fetch request to save
 	fetch('/submit_?id=api_key_us', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-				//org_id: orgId,
 				api_key: apiKey
 			}),
 		})
@@ -52,18 +56,14 @@ document.getElementById('api_key_us_form').addEventListener('submit', function(e
 
 document.getElementById('api_key_eu_form').addEventListener('submit', function(event) {
 	event.preventDefault();
-
-	// Get form data
 	const apiKey = document.getElementById('api_key_eu').value;
 
-	// Fetch request to save
 	fetch('/submit_?id=api_key_eu', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-				//org_id: orgId,
 				api_key: apiKey
 			}),
 		})
@@ -79,13 +79,11 @@ document.getElementById('api_key_eu_form').addEventListener('submit', function(e
 		});
 });
 
+
 document.getElementById('api_key_cis_form').addEventListener('submit', function(event) {
 	event.preventDefault();
-
-	// Get form data
 	const apiKey = document.getElementById('api_key_cis').value;
 
-	// Fetch request to save
 	fetch('/submit_?id=api_key_cis', {
 			method: 'POST',
 			headers: {
@@ -108,8 +106,10 @@ document.getElementById('api_key_cis_form').addEventListener('submit', function(
 });
 
 
-
-/* ---------- Loading overlay configs ---------- */
+/**
+Loading Overlay Configurations
+	
+*/
 var configs = {
 	"overlayBackgroundColor": "#2d2d2d",
 	"overlayOpacity": 0.4,
@@ -126,20 +126,55 @@ var configs = {
 	"spinnerZIndex": 9999
 };
 
-
-/* ---------- Loading overlay ---------- */
 function loading() {
 	JsLoadingOverlay.show(configs);
 }
 
+
+
+/**
+On-Load Windows Function
+
+	1. Add the overlay and removes after a few seconds.
+	2. fetchDirectory is what populates the files shows on the reports tab.
+	3. updateOutput is our notication listener
+	4. Lister for the test scheduler button. 
+
+*/
 window.onload = function() {
     loading();
     setTimeout(function(){JsLoadingOverlay.hide();},1000);
     fetchDirectory();
+	setInterval(fetchDirectory, 30000);
+
+	updateOutput();
+	setInterval(updateOutput, 1000);
+	
+
+	var coll = document.getElementsByClassName("collapsible");
+	var i;
+
+	for (i = 0; i < coll.length; i++) {
+		coll[i].addEventListener("click", function() {
+			this.classList.toggle("active");
+			var content = this.nextElementSibling;
+			if (content.style.maxHeight) {
+				content.style.maxHeight = null;
+			} else {
+				content.style.maxHeight = content.scrollHeight + "px";
+			}
+		});
+	}
 };
 
 
-/* ---------- Page Reload Handler ---------- */
+
+/**
+Page Reload Event Listener
+
+	If the page is reloaded, the overlay is removed
+
+*/
 window.addEventListener('pageshow', function(event) {
 	if (event.persisted) {
 		location.reload()
@@ -148,7 +183,13 @@ window.addEventListener('pageshow', function(event) {
 });
 
 
-/* ---------- Select add_user and delete_user together ---------- */
+/**
+Form Handling - User Tests
+
+	For the CCUS and CCEU tabs. There's certain testing scenario's where if one is ran, another needs to be included. 
+	"add user" and "delete user" is a prime example. If we create a user, we're deleting it right after.
+	2 versions below for CCUS and CCEU APIs'
+*/
 // US
 const selectAddUser = document.getElementById('test_add_user');
 const selectDeleteUser = document.getElementById('test_delete_user');
@@ -168,7 +209,6 @@ selectDeleteUser.addEventListener('change', function() {
 			selectAddUser.checked = true;
 		}
 });
-
 
 // EU
 const selectAddUser_EU = document.getElementById('eu_test_add_user');
@@ -191,7 +231,12 @@ selectDeleteUser_EU.addEventListener('change', function() {
 });
 
 
-/* ---------- "Select All" Functionality ---------- */
+/**
+Form Handling - Select All Feature
+
+	Select all handling for the CCUS, CCEU and CIS forms (tabs)
+	3 versions below for CCUS, CCEU and CIS APIs'
+*/
 // US
 const selectAllCheckbox = document.getElementById('selectAll');
 const testCheckboxes = document.querySelectorAll('input[name="test"]');
@@ -223,21 +268,23 @@ selectAllCheckbox_CIS.addEventListener('change', function() {
 });
 
 
+/**
+Form Handling - Select All Unchecked
 
-/* ---------- ensure "Select all" is unchecked when any other is unchecked ---------- */
+	Ensure "Select all" is unchecked when any other is unchecked for the CCUS, CCEU and CIS forms (tabs)
+	3 versions below for CCUS, CCEU and CIS APIs'
+*/
 // US
 testCheckboxes.forEach(checkbox => {
 	checkbox.addEventListener('change', function() {
 		if (!this.checked) {
 			selectAllCheckbox.checked = false;
 		} else {
-			// Otherwise, check all if checked
 			const allChecked = Array.from(testCheckboxes).every(cb => cb.checked);
 			selectAllCheckbox.checked = allChecked;
 		}
 	});
 });
-
 
 // EU
 testCheckboxes_EU.forEach(checkbox => {
@@ -245,7 +292,6 @@ testCheckboxes_EU.forEach(checkbox => {
 		if (!this.checked) {
 			selectAllCheckbox_EU.checked = false;
 		} else {
-			// Otherwise, check all if checked
 			const allChecked_EU = Array.from(testCheckboxes_EU).every(cb => cb.checked);
 			selectAllCheckbox_EU.checked = allChecked_EU;
 		}
@@ -258,7 +304,6 @@ testCheckboxes_CIS.forEach(checkbox => {
 		if (!this.checked) {
 			selectAllCheckbox_CIS.checked = false;
 		} else {
-			// Otherwise, check all if checked
 			const allChecked_CIS = Array.from(testCheckboxes_CIS).every(cb => cb.checked);
 			selectAllCheckbox_CIS.checked = allChecked_CIS;
 		}
@@ -266,14 +311,19 @@ testCheckboxes_CIS.forEach(checkbox => {
 });
 
 
+/**
+Form Handling - Group Checkbox Event Listener
 
-/* ---------- Add event listener - checkbox - based on data-group attribute ---------- */
+	Based on the "data-group" attribute that is set when the lists are populated our flask server. 
+	Similar to the "add/delete user" tests, if one test is selected, there are others that need to be as well. 
+	This is used for org and domain tests.
+
+*/
 document.querySelectorAll('input[type="checkbox"][data-group]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
         const group = this.dataset.group; // get group name
         if (group == "domains" || group == "organizations" || group == "eu_organizations" || group == "eu_domains"){
             const isChecked = this.checked; // get checked state
-
             // Find all in the same group and check state
             document.querySelectorAll(`input[type="checkbox"][data-group="${group}"]`).forEach(groupCheckbox => {
                 groupCheckbox.checked = isChecked;
@@ -305,31 +355,6 @@ newDiv.setAttribute('id', 'title-bar-div');
 newDiv.setAttribute('class', 'title-bar');
 
 
-/* ---------- modal ---------- */
-var modal = document.getElementById("settingsModal");
-var modalContainer = document.getElementById("modalContainer");
-var btn = document.getElementById("modalBtn");
-
-// CLOSE ELEMENT
-var span = document.getElementsByClassName("close")[0] ;
-
-
-/* ---------- modal svg button ---------- */
-var modalBtnSvg = document.getElementById("modalBtnSvg");
-modalBtnSvg.addEventListener('mouseover', function() {
-    modalBtnSvg.style.fill = 'black';
- });
-
-modalBtnSvg.addEventListener('mouseout', function() {
-    modalBtnSvg.style.fill = 'grey';
-});
-
-// Close Function
-span.onclick = function() {
-  modal.style.display = "none";
-  modalContainer.style.display = "none";
-}
-
 
 /* ---------- Main ---------- */
 async function runTestsUS() {
@@ -358,9 +383,16 @@ async function runTestsUS() {
             })
             .then(loading());
 
-            let response_data = await response;
-            window.location.href = "/report?sort=original";
+            let response_data = await response.json();
+            
             JsLoadingOverlay.hide();
+			notifications.show("All Finished!", "passed");
+			notifications.show(
+				'View your report\n', 
+				'info', 
+				{ text: `${response_data["report"]}`, url: `/report?id=${response_data["report"]}` }, 
+				15000
+			);
 
         } else {
             alert("No tests selected!");
@@ -394,9 +426,17 @@ async function runTestsEU() {
             })
             .then(loading());
 
-            let data = await response;
-            window.location.href = "/report?sort=original";
+            let response_data = await response.json();
+            
             JsLoadingOverlay.hide();
+			notifications.show("All Finished!", "passed");
+			notifications.show(
+				'View your report\n', 
+				'info', 
+				{ text: `${response_data["report"]}`, url: `/report?id=${response_data["report"]}` }, 
+				15000
+			);
+			
 
         } else {
             alert("No tests selected!");
@@ -427,9 +467,16 @@ async function runTestsCIS() {
             })
             .then(loading());
 
-            let data = await response;
-            window.location.href = "/report?sort=original";
+            let response_data = await response.json();
+            
             JsLoadingOverlay.hide();
+			notifications.show("All Finished!", "passed");
+			notifications.show(
+				'View your report\n', 
+				'info', 
+				{ text: `${response_data["report"]}`, url: `/report?id=${response_data["report"]}` }, 
+				15000
+			);
 
         } else {
             alert("No tests selected!");
@@ -462,33 +509,112 @@ function openTab(evt, tabName) {
 
  // Fetch Directory Report List
 
-function fetchDirectory() {
-  fetch('/list-directory')
-    .then(response => response.json())
-    .then(data => {
-        const fileList = document.getElementById('file-list');
+ function fetchDirectory() {
+	fetch('/list-directory')
+	  .then(response => response.json())
+	  .then(data => {
+		  const fileListContainer = document.getElementById('file-list');
+		  fileListContainer.innerHTML = ''; 
+  
+		  // error handling
+		  if (data.error) {
+			  fileListContainer.innerHTML = `<div>${data.error}</div>`;
+			  return;
+		  }
+  
+		  // Categorize files by prefix
+		  const categorizedFiles = {
+			  CCUS: [],
+			  CCEU: [],
+			  CIS: [],
+			  other: []
+		  };
+  
+		  data.files.forEach(file => {
+			  if (file.startsWith('CCUS')) {
+				  categorizedFiles.CCUS.push(file);
+			  } else if (file.startsWith('CCEU')) {
+				  categorizedFiles.CCEU.push(file);
+			  } else if (file.startsWith('CIS')) {
+				  categorizedFiles.CIS.push(file);
+			  } else {
+				  categorizedFiles.other.push(file);
+			  }
+		  });
+  
+		  // Create columns container
+		  const columnsContainer = document.createElement('div');
+		  columnsContainer.style.display = 'flex';
+		  columnsContainer.style.gap = '20px';
+		  
+		  // Create columns for each category
+		  ['CCUS', 'CCEU', 'CIS'].forEach(prefix => {
+			  if (categorizedFiles[prefix].length > 0) {
+				  const fieldset = document.createElement('fieldset');
+				  const legend = document.createElement('legend');
+				  legend.innerHTML = prefix
 
-        // error handling
-        if (data.error) {
-            fileList.innerHTML = `<li>${data.error}</li>`;
-            return;
-        }
-
-        // populate clickable links
-        data.files.forEach(file => {
-            const listItem = document.createElement('li');
-            const link = document.createElement('a');
-            link.href = `/report?id=${file}`; // saved filepath
-            link.textContent = file;
-            listItem.appendChild(link);
-            fileList.appendChild(listItem);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching directory listing:', error);
-        document.getElementById('file-list').innerHTML = '<li>Failed to load directory listing.</li>';
-    });
-    }
+				  const column = document.createElement('div');
+				  column.style.flex = '1';
+				  
+				  //const header = document.createElement('h3');
+				  //header.textContent = prefix;
+				  //column.appendChild(header);
+				  
+				  
+				  const list = document.createElement('ul');
+				  list.style.listStyleType = 'none';
+				  list.style.padding = '0';
+				  
+				  categorizedFiles[prefix].forEach(file => {
+					  const listItem = document.createElement('li');
+					  const link = document.createElement('a');
+					  link.href = `/report?id=${file}`;
+					  link.textContent = file;
+					  listItem.appendChild(link);
+					  list.appendChild(listItem);
+				  });
+				  
+				  column.appendChild(list);
+				  fieldset.appendChild(legend);
+				  fieldset.appendChild(column);
+				  columnsContainer.appendChild(fieldset);
+			  }
+		  });
+  
+		  // Add other files if they exist
+		  if (categorizedFiles.other.length > 0) {
+			  const otherColumn = document.createElement('div');
+			  otherColumn.style.flex = '1';
+			  
+			  const header = document.createElement('h3');
+			  header.textContent = 'Other Files';
+			  otherColumn.appendChild(header);
+			  
+			  const list = document.createElement('ul');
+			  list.style.listStyleType = 'none';
+			  list.style.padding = '0';
+			  
+			  categorizedFiles.other.forEach(file => {
+				  const listItem = document.createElement('li');
+				  const link = document.createElement('a');
+				  link.href = `/report?id=${file}`;
+				  link.textContent = file;
+				  listItem.appendChild(link);
+				  list.appendChild(listItem);
+			  });
+			  
+			  otherColumn.appendChild(list);
+			  columnsContainer.appendChild(otherColumn);
+		  }
+  
+		  fileListContainer.appendChild(columnsContainer);
+	  })
+	  .catch(error => {
+		  console.error('Error fetching directory listing:', error);
+		  document.getElementById('file-list').innerHTML = '<div>Failed to load directory listing.</div>';
+	  });
+  }
 
 
 
@@ -496,27 +622,55 @@ function fetchDirectory() {
 async function tlsChecker() {
     const common_name = document.getElementById("tls_check_label_input");
     const tls_div = document.getElementById("tls_check_div");
+	const tls_ocsp_check = document.getElementById("tls_ocsp_check").checked;
+
 	loading()
-    
-    try {
-        const response = await fetch('/help?cn=' + encodeURIComponent(common_name.value), {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) throw new Error('Network error');
-        
-        const htmlContent = await response.text();
-        tls_div.innerHTML = htmlContent;
-        
-        // Replace all images with SVGs
-        replaceCertificateIcons(tls_div);
-		JsLoadingOverlay.hide();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        tls_div.innerHTML = '<p>Error loading TLS information</p>';
-		JsLoadingOverlay.hide();
+
+	if (tls_ocsp_check) {
+		try {
+			const response = await fetch('/ocsp?cn=' + encodeURIComponent(common_name.value), {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' }
+			});
+			
+			if (!response.ok) throw new Error('Network error');
+			
+			const htmlContent = await response.text();
+			tls_div.innerHTML = htmlContent;
+			
+			// Replace all images with SVGs
+			replaceCertificateIcons(tls_div);
+			JsLoadingOverlay.hide();
+			
+		} catch (error) {
+			console.error('Error:', error);
+			tls_div.innerHTML = '<p>Error loading OCSP information</p>';
+			JsLoadingOverlay.hide();
+		}
+
+	}
+	else {
+
+		try {
+			const response = await fetch('/help?cn=' + encodeURIComponent(common_name.value), {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' }
+			});
+			
+			if (!response.ok) throw new Error('Network error');
+			
+			const htmlContent = await response.text();
+			tls_div.innerHTML = htmlContent;
+			
+			// Replace all images with SVGs
+			replaceCertificateIcons(tls_div);
+			JsLoadingOverlay.hide();
+			
+		} catch (error) {
+			console.error('Error:', error);
+			tls_div.innerHTML = '<p>Error loading TLS information</p>';
+			JsLoadingOverlay.hide();
+		}
     }
 }
 
@@ -538,4 +692,91 @@ function replaceCertificateIcons(container) {
         
         img.replaceWith(icon);
     });
+}
+
+
+
+/** NEW-ish */
+
+
+function clearOutput() {
+
+    fetch('/reset')
+}
+
+
+function updateOutput() {
+    fetch('/output')
+        .then(response => response.text())
+        .then(text => {
+            // 1. Fix JSON formatting
+            const validJsonText = text
+                .replace(/'/g, '"') // Replace single quotes
+                .replace(/True/g, 'true') // Fix Python booleans
+                .replace(/False/g, 'false');
+
+            // 2. Split and parse objects
+            const parsedData = validJsonText.split('}{')
+                .map((obj, index, arr) => {
+                    if (arr.length === 1) return obj;
+                    return index === 0 ? obj + '}' :
+                        index === arr.length - 1 ? '{' + obj :
+                        '{' + obj + '}';
+                })
+                .map(obj => {
+                    try {
+                        return JSON.parse(obj);
+                    } catch (e) {
+                        return null;
+                    }
+                })
+                .filter(Boolean);
+
+            // 3. Filter for "call" phase only
+            const callEntries = parsedData.filter(entry => entry.when === 'call');
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+
+                    // 4. Display results
+                    if (callEntries.length > 0) {
+
+                        callEntries.map(entry =>
+                            notifications.show(data["current_iteration"] + ": " + entry.node, entry.outcome),
+
+                        ).join('');
+                    }
+                });
+            clearOutput();
+			
+
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+        });
+}
+
+
+/* ---------- MODAL ---------- */
+var modal = document.getElementById("settingsModal");
+var modalContainer = document.getElementById("modalContainer");
+var btn = document.getElementById("modalBtn");
+
+// CLOSE ELEMENT
+var span = document.getElementsByClassName("close")[0] ;
+
+
+
+btn.onclick = function() {
+  modal.style.display = "block";
+  modalContainer.style.display = "block";
+}
+
+
+// CLOSE FUNCTION
+span.onclick = function() {
+  modal.style.display = "none";
+  modalContainer.style.display = "none";
 }

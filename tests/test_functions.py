@@ -74,6 +74,7 @@ def cis_test_scripts():
         
         "issuance": [
             "./tests_cis/issuance.py::test_issuance_heartbeat",
+            "./tests_cis/issuance.py::test_get_profiles",
 
         ],
         "validation": [

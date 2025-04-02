@@ -36,3 +36,13 @@ def test_issuance_heartbeat():
     header = url_header[1]
     response = make_request("GET",base_url ,endpoint, header)
     assert response.status_code == 204
+
+
+def test_get_profiles():
+    endpoint = "cis/profile"
+    url_header = env_prep()
+    base_url = url_header[0]
+    header = url_header[1]
+    response = make_request("GET",base_url ,endpoint, header)
+    print(response.text)
+    assert response.status_code == 200

@@ -11,16 +11,22 @@ from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
 from flaskwebgui import FlaskUI
 import keyring
+from collections import deque
+from threading import Lock
 
 # Local file imports
-from conftest import process_defined_tests  # Configuration file for the pytest module
+#from conftest import process_defined_tests  # Configuration file for the pytest module
 from tests.test_functions import test_scripts
 from tests.test_functions import cis_test_scripts
 from tests import crypto
+from conftest import process_defined_tests
 from utils.sqlite_kv_store import kv_store
+from utils.ocsp_check import check_certificate_revocation
+from utils.scheduler import AsyncTestScheduler
 
 
-# -------------------------- Environment -------------------------------- #
+# __________________________ Environment ________________________________ #
+# ----------------------------------------------------------------------- #
 
 app = Flask(__name__)                       # Main Flask App
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Required for hot-reloading of html otherwise you'll see cached versions
@@ -46,9 +52,12 @@ kv_store = kv_store                             # Load our env sql db
 kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load - Toggle used for CCUS vs CCEU API base_url's
 
 
-# -------------------------- Routes -------------------------------- #
+# __________________________ Routes ________________________________ #
+# ------------------------------------------------------------------ #
 
-# Homepage
+""" 
+Homepage 
+"""
 @app.route('/', methods=['GET', 'POST'])  
 async def index():
     
@@ -84,21 +93,28 @@ async def index():
                            )
 
 
-# Account/org ping check
+""" 
+Account/org ping check 
+"""
 @app.route('/verify', methods=['GET']) #  TODO is this even used? remove? 
 async def verification_status():
     data = await us_ping_get_account_values()
     return data
 
 
-# Generated report endpoint
+""" 
+Generated report endpoint 
+"""
 @app.route('/report', methods=['GET', 'POST'])
 async def report():
     ENV_STORE = kv_store                        # Initilize our custom env variable store db (csr, key, urls, etc.)
     if request.method == 'POST':                # "Mode" check - Used for calling the Certcentral us api vs. Certcentral eu api (base_url)
 
-        # CIS API Handling
         cis_api = request.args.get('api')
+        
+        scheduler_mode = request.args.get('scheduler_mode')
+        
+        # CIS API Handling
         if cis_api:
             selected_tests = request.json.get('selected_tests', [])     # Processing of chosen tests in the post request
             if not selected_tests:
@@ -128,8 +144,10 @@ async def report():
                 print(f"Permission denied for {destination}.")
             except Exception as e:
                 print(f"An error occurred: {e}")
+            
+            report_name = "CIS_report_{formatted_time}"
 
-            return render_template('report.html')  
+            return jsonify({"report": report_name})
         
 
         # CCUS/CCEU API Handling
@@ -159,8 +177,10 @@ async def report():
 
             if mode == "true":
                 destination = resource_path(f'./templates/reports/CCUS_report_{formatted_time}.html')  # Custom report titles
+                report_name = f"CCUS_report_{formatted_time}"
             else:
                 destination = resource_path(f'./templates/reports/CCEU_report_{formatted_time}.html')
+                report_name = f"CCEU_report_{formatted_time}"
 
             try:
                 os.makedirs(os.path.dirname(destination), exist_ok=True)    # creates the "Templates/reports" directory  
@@ -173,7 +193,9 @@ async def report():
             except Exception as e:
                 print(f"An error occurred: {e}")
 
-            return render_template('report.html')                           # returns the generated report (or last saved "Report.Html" on any failure)
+            #report_name = f"CC_report_{formatted_time}"
+
+            return jsonify({"report": report_name})                          # returns the generated report (or last saved "Report.Html" on any failure)
     else:
 
         arg = request.args.get('id')                                    # get request handling - used for older report view
@@ -183,7 +205,9 @@ async def report():
             return render_template('report.html')
 
 
-# API key env variable form endpoint
+""" 
+API key env variable form endpoint 
+"""
 @app.route('/submit_', methods=['POST'])
 def submit_env_variables():
     arg = request.args.get('id')
@@ -207,7 +231,10 @@ def submit_env_variables():
         return jsonify({"message": "Key received successfully!"})
 
 
-# Directory of past generated reports - once packaged, they will only persist per session TODO change this? It could cause file bloat over time
+""" 
+Directory of past generated reports - once packaged, they will only persist per session 
+TODO change this? It could cause file bloat over time 
+"""
 @app.route('/list-directory')
 def list_directory():
     directory_path = resource_path('./templates/reports')
@@ -220,21 +247,27 @@ def list_directory():
     return jsonify({"files": files, "directory": directory_path})
 
 
-# Custom static directory for report handling - html
+""" 
+Custom static directory for report handling - html 
+"""
 @app.route('/reports/<filename>')
 def custom_static(filename):
     directory_path = resource_path('./reports')
     return send_from_directory(directory_path, filename)
 
 
-# Custom static directory for report handling - css/javascript
+""" 
+Custom static directory for report handling - css/javascript 
+"""
 @app.route('/c_static/<filename>')
 def custom_static_js_css(filename):
     directory_path = resource_path('./static')
     return send_from_directory(directory_path, filename)
 
 
-# Endpoint for generating private key/csr for user
+""" 
+Endpoint for generating private key/csr for user 
+"""
 @app.route('/keypair')
 def gen_keypair():
     key = crypto.generate_private_key_tab()
@@ -243,7 +276,9 @@ def gen_keypair():
     return jsonify({"csr": keypair["csr"], "key": keypair["key"]})
 
 
-#  SSL Checker - Same that 'digicert.com/help' uses, but just the html <div> element is returned
+"""  
+SSL Checker - Same that 'digicert.com/help' uses, but just the html <div> element is returned 
+"""
 @app.route('/help')
 def help_check():
     cn = request.args.get('cn')
@@ -251,24 +286,134 @@ def help_check():
         url = 'https://www.digicert.com/api/check-host.php'
         data = {"host": f"{cn}"}
         response = requests.post(url, data=data)
-        print(response.text)
         return response.text
     else:
         return
 
 
-# -------------------------- Functions -------------------------------- #
+@app.route('/ocsp')
+def ocsp_check():
+    cn = request.args.get('cn')
+    
+    if cn:
+        result = check_certificate_revocation(cn)
+        return result
+    else:
+        return
 
-# Default api request helper - slightly different as this includes the base_url, 
-# rather then rely on the value in env
+
+""" 
+Test Scheduler - Start, Stop, Status - My attempt at running x amount of tests every x minutes.
+"""
+scheduler = AsyncTestScheduler()
+
+
+@app.route('/start-tests', methods=['POST'])
+async def start_tests():
+    data = request.get_json()
+    full_selected_tests = []
+    selected_tests = data.get('selected_tests', [])
+    for key, tests in CIS_TEST_FUNCTIONS.items():                   # Global CIS_TEST_FUNCTIONS
+                for test in tests:
+                    test_name = test.split("::")[1]       
+                    if test_name in selected_tests:
+                        full_selected_tests.append(test)
+    
+    
+    interval = data.get('interval', 5)
+    repetitions = data.get('repetitions', 1)
+    print(selected_tests)
+    
+    success = await scheduler.schedule_tests(
+        selected_tests=full_selected_tests,
+        interval_min=interval,
+        repetitions=repetitions
+
+    )
+
+    return jsonify({
+        "success": success,
+        "status": scheduler.get_status(),
+        "saved_report": scheduler.get_file_name(),
+    })
+
+@app.route('/stop', methods=['POST'])
+def stop_scheduler():
+    scheduler.stop()
+    return jsonify({
+        "success": True,
+        "status": scheduler.get_status()
+    })
+
+@app.route('/status')
+def get_status():
+    return jsonify(scheduler.get_status())
+
+
+
+"""
+Output Display
+"""
+output_buffer = deque(maxlen=100)  # Keep last 100 lines
+buffer_lock = Lock()
+
+# Custom stream class to capture stdout
+class OutputCapture:
+    def write(self, text):
+        with buffer_lock:
+            output_buffer.append(text)
+        # Also write to original stdout if needed
+        #sys.__stdout__.write(text)
+    
+    def flush(self):
+        pass
+
+#sys.stdout.isatty = lambda: False
+out_capture = OutputCapture()
+
+@app.route('/testing', methods=['POST'])
+def output():
+    data = request.get_json()
+
+    
+    with buffer_lock:
+        output_buffer.append(str(data))
+        output = ''.join(output_buffer)
+        #print(output)
+    return jsonify(output)
+
+
+@app.route('/output')
+def get_output():
+    with buffer_lock:
+        return ''.join(output_buffer)
+    
+@app.route('/reset')
+def reset_output():
+    with buffer_lock:
+        output_buffer.clear()
+        return "ok"
+
+
+
+
+# __________________________ Functions ________________________________ #
+# --------------------------------------------------------------------- #
+
+"""
+Default api request helper - slightly different as this includes the base_url, 
+rather then rely on the value in env
+"""
 def make_request(method, base_url, endpoint, headers, payload=None):
     url = f"{base_url}/{endpoint}"
     response = requests.request(method, url, headers=headers, json=payload)
     return response
 
 
-#  Account ping and org check - Poplates list of account organizations for the dropdown within index.html
-#  Used on the CCUS and CCEU tabs within index.html
+""" 
+Account ping and org check - Poplates list of account organizations for the dropdown within index.html
+Used on the CCUS and CCEU tabs within index.html
+"""
 async def us_ping_get_account_values():
     global US_STATUS_VERIFIED
     ENV_STORE = kv_store                   # Initilize our custom env variable store db (csr, key, urls, etc.)
@@ -331,7 +476,9 @@ async def eu_ping_get_account_values():
         return
     
 
-
+"""  
+CIS Account ping - Issuance API 
+"""
 async def cis_ping_get_account_values():
     global CIS_STATUS_VERIFIED
     ENV_STORE = kv_store                   # Initilize our custom env variable store db ( csr, key, urls, etc.)
@@ -360,6 +507,9 @@ async def cis_ping_get_account_values():
         return
 
 
+"""  
+CIS Account ping - Validation API 
+"""
 async def cis_validation_ping_get_account_values():
     global CIS_VALIDATION_STATUS_VERIFIED
     ENV_STORE = kv_store                   # Initilize our custom env variable store db ( csr, key, urls, etc.)
@@ -389,14 +539,18 @@ async def cis_validation_ping_get_account_values():
 
 # ------------------------------- Main ------------------------------------ #
 
-# Defines the user's screen size so it can be used for app window placement
+""" 
+Defines the user's screen size so it can be used for app window placement 
+"""
 def user_screen_size():
     user32 = ctypes.windll.user32
     screensize = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
     return screensize  # (x,y)
 
 
-# Seperate flask function so waitress can be used (performance)
+""" 
+Seperate flask function so waitress can be used (performance) 
+"""
 def start_flask(**server_kwargs):
     app = server_kwargs.pop("app", None)
     server_kwargs.pop("debug", None)

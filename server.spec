@@ -9,6 +9,7 @@ added_files = [
     ('conftest.py', '.'),
     ('pytest.ini', '.'),
     ('tests/*', 'tests'),
+    ('tests_cis/*', 'tests_cis'),
     ('templates/*', 'templates'),
     ('templates/reports', 'templates/reports'),
     ('static/*', 'static'),
@@ -89,9 +90,5 @@ exe = EXE(
     icon='dh.ico'
 )
 
-
-#import shutil
-
-#shutil.copyfile('conftest.py', '{0}/server/conftest.py'.format(DISTPATH))
 
 

@@ -2,6 +2,7 @@ import pytest
 import asyncio
 import os
 import sys
+import requests
 
 # local imports
 from tests.crypto import generate_csr, generate_private_key
@@ -74,6 +75,7 @@ def run_pytest(selected_tests):
         "pytest",                                                       # pytest command
         f"--html={resource_path('./templates/report.html')}",
         f"--css={resource_path('./static/css/custom.css')}",
+        "-v", 
         "--self-contained-html"
     ] + resolved_tests
 
@@ -86,4 +88,21 @@ def run_pytest(selected_tests):
 async def process_defined_tests(selected_tests):
     await asyncio.to_thread(run_pytest, selected_tests)
     return
+
+
+
+def pytest_runtest_logreport(report):
+   
+    url = f"http://127.0.0.1:5444/testing"
+    data = {"node": f"{report.nodeid}",
+            "when": f"{report.when}",
+            "outcome": f"{report.outcome}",
+            "duration": f"{report.duration}",
+            
+            } 
+    response = requests.request("POST", url, json=data)
+    #print(response)
+    return response
+    #LOG_FILE.write(f"{report.nodeid} {report.when} {report.outcome} {report.duration}\n")
+
 

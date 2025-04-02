@@ -1,0 +1,3 @@
+tests_cis/issuance.py::test_issuance_heartbeat setup passed 0.00022220006212592125
+tests_cis/issuance.py::test_issuance_heartbeat call passed 0.09462780016474426
+tests_cis/issuance.py::test_issuance_heartbeat teardown passed 0.000224800081923604
