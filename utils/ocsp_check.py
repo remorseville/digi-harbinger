@@ -127,9 +127,7 @@ def format_html_result(url, messages, is_valid):
 </div>
 <style>
 .message {{
-    margin: 8px 0;
     padding: 8px 12px;
-    border-left: 4px solid #2196F3;
     background-color: white;
     border-radius: 0 4px 4px 0;
 }}
@@ -155,18 +153,18 @@ def check_certificate_revocation(url):
     try:
         messages.append(f'<p >Checking certificate for: {url} </p>')
         
-        # Step 1: Get certificate from URL
+        # Get certificate from URL
         cert = get_certificate_from_url(url)
         messages.append("<p>✓ Certificate obtained successfully</p>")
         
-        # Step 2: Get issuer certificate
+        # Get issuer certificate
         issuer_cert = get_issuer_certificate(cert)
         if issuer_cert:
             messages.append("<p>✓ Issuer certificate obtained</p>")
         else:
             messages.append('<p class="warning">⚠ Could not obtain issuer certificate - will try OCSP anyway</p>')
         
-        # Step 3: Perform OCSP check
+        # Perform OCSP check
         ocsp_response = perform_ocsp_check(cert, issuer_cert)
         
         # Interpret OCSP response
@@ -197,10 +195,63 @@ def check_certificate_revocation(url):
         messages.append(f'<p class="error">❌ Error during OCSP check: {str(e)}</p>')
         return format_html_result(url, messages, False)
 
-if __name__ == "__main__":
-    url = "example.com"  # Replace with your target URL or get from command line
-    html_result = check_certificate_revocation(url)
+
+def check_certificate_revocation_pem(cert):
+    messages = []
+    try:
+
+        common_name = None
+        for attr in cert.subject:
+            if attr.oid == x509.oid.NameOID.COMMON_NAME:
+                common_name = attr.value
+                break
+
+        messages.append(f'<p >Checking certificate for: {common_name} </p>')
+        
+        messages.append("<p>✓ Certificate obtained successfully</p>")
+        
+        # Get issuer certificate
+        issuer_cert = get_issuer_certificate(cert)
+        if issuer_cert:
+            messages.append("<p>✓ Issuer certificate obtained</p>")
+        else:
+            messages.append('<p class="warning">⚠ Could not obtain issuer certificate - will try OCSP anyway</p>')
+        
+        # Perform OCSP check
+        ocsp_response = perform_ocsp_check(cert, issuer_cert)
+        
+        # Interpret OCSP response
+        if ocsp_response.response_status == ocsp.OCSPResponseStatus.SUCCESSFUL:
+            messages.append("<p>✓ OCSP response received successfully</p>")
+            
+            # Check certificate status
+            if ocsp_response.certificate_status == ocsp.OCSPCertStatus.GOOD:
+                messages.append('<p class="success">✅ Certificate is valid (not revoked)</p>')
+                messages.append(f"  This Update: {ocsp_response.this_update_utc}")
+                if ocsp_response.next_update_utc:
+                    messages.append(f"  Next Update: {ocsp_response.next_update_utc}")
+                return format_html_result(common_name, messages, True)
+            elif ocsp_response.certificate_status == ocsp.OCSPCertStatus.REVOKED:
+                revoked_info = ocsp_response.revocation_time
+                reason = ocsp_response.revocation_reason.name if ocsp_response.revocation_reason else "unspecified"
+                messages.append(f'<p class="error">❌ Certificate REVOKED since {revoked_info} (reason: {reason})</p>')
+                return format_html_result(common_name, messages, False)
+            else:
+                messages.append('<p class="warning">⚠ Certificate status unknown</p>')
+                return format_html_result(common_name, messages, False)
+        else:
+            status = ocsp_response.response_status.name
+            messages.append(f'<p class="error">❌ OCSP check failed with status: {status}</p>')
+            return format_html_result(common_name, messages, False)
+            
+    except Exception as e:
+        messages.append(f'<p class="error">❌ Error during OCSP check: {str(e)}</p>')
+        return format_html_result(common_name, messages, False)
+    
+#if __name__ == "__main__":
+    # url = "example.com"  # Replace with your target URL or get from command line
+    # html_result = check_certificate_revocation(url)
     
     # For command line use, we'll print the HTML
-    print("Content-Type: text/html\n")
-    print(html_result)
+    # print("Content-Type: text/html\n")
+    # print(html_result)

@@ -84,6 +84,8 @@ def run_pytest(selected_tests):
     finally:
         sys.argv = original_argv                                        # restore original sys.Argv
 
+
+
 @pytest.mark.asyncio
 async def process_defined_tests(selected_tests):
     await asyncio.to_thread(run_pytest, selected_tests)
@@ -101,7 +103,6 @@ def pytest_runtest_logreport(report):
             
             } 
     response = requests.request("POST", url, json=data)
-    #print(response)
     return response
     #LOG_FILE.write(f"{report.nodeid} {report.when} {report.outcome} {report.duration}\n")
 

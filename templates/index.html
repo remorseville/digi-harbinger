@@ -1,107 +1,94 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html">
-  <head>
+
+<head>
     <meta charset="utf-8" />
     <title id="head-title">( ˶°ㅁ°) !!</title>
     <link rel="icon" type="image/x-icon" href='{{ url_for("static", filename="favicon.ico") }}'>
-    <link rel="stylesheet" href='{{ url_for("static", filename="css/style.css") }}' type="text/css"/>
+    <link rel="stylesheet" href='{{ url_for("static", filename="css/style.css") }}' type="text/css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-loading-overlay@1.1.0/dist/js-loading-overlay.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  </head>
-  <body>
+</head>
 
-    
+<body>
+
 
     <div id="navbar">
-      <div class="ticker-wrap">
-        <div class="ticker">
-          <div class="ticker__item fade-in" id="output"></div>
-          <div class="ticker__item fade-in" id="next_run"></div>
-          <div class="ticker__item fade-in" id="next_run_seconds"></div>
-          </div>
+        <div id="title-bar-div2" class="title-bar">
+            <a id="home-link">Version 0.7</a>
+            <h1 id="title">Digi-Harbinger</h1>
         </div>
-      <div id="title-bar-div2" class="title-bar">
-        <a id="home-link" >Version 0.7</a>
-        <h1 id="title">Digi-Harbinger</h1>
-      </div>
-      <div class="tab">
-        <button
-          class="tablinks active"
-          onclick="openTab(event, 'CC US')"
-          id="defaultOpen"
-          >
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'CC_US')" id="defaultOpen">
         CertCentral US
         </button>
-        <button class="tablinks" onclick="openTab(event, 'CC EU')">
+            <button class="tablinks" onclick="openTab(event, 'CC_EU')">
         CertCentral EU
         </button>
-        <button class="tablinks" onclick="openTab(event, 'CIS')">
+            <button class="tablinks" onclick="openTab(event, 'CIS')">
         CIS
         </button>
-        <button class="tablinks" onclick="openTab(event, 'CSR/Key')">
-        CSR/Key
-        </button>
-        <button class="tablinks" onclick="openTab(event, 'Reports')">
+
+            <button class="tablinks" onclick="openTab(event, 'Reports')">
         Reports
         </button>
-        <button class="tablinks" onclick="openTab(event, 'TLS Check')">
-        TLS Check
+            <button class="tablinks" onclick="openTab(event, 'Tools')">
+        Tools
         </button>
-        <button class="tablinks" onclick="openTab(event, 'Settings')">
+            <button class="tablinks" onclick="openTab(event, 'Settings')">
         Settings
         </button>
-      </div>
+        </div>
     </div>
     <div class="main">
-      <header class="page-head">
-        <div class="page-head__ticker">
-          <p class="msg" >
-            
-          </p>
-        </div>
-      </header>
-      <div id="CC US" class="tabcontent">
-        <!-- US MAIN HUD -->
-        <div class="main-hud-container">
-          <div class="hud-grid">
-            <div class="sub-grid">
-              {% if status_verified %}
-              <label id="status"
-                >Status:
+         <!-- CCUS Tab  -->
+        <div id="CC_US" class="tabcontent">
+           
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                    <div class="sub-grid">
+                        {% if status_verified %}
+                        <label id="status">Status:
               <span class="success-status">Connected</span>
-              </label>
-              {% else %}
-              <label
-                >Status:
+              </label> {% else %}
+                        <label>Status:
               <span class="fail-status">Not Connected</span>
-              </label>
-              {% endif %}
-            </div>
-            <div class="sub-grid" id="org_select_container">
-              <label for="org_dropdown">Current Org:</label>
-              <select id="org_dropdown" name="org_dropdown">
+              </label> {% endif %}
+                    </div>
+                    <div class="sub-grid" id="org_select_container">
+                        <label for="org_dropdown">Current Org:</label>
+                        <select id="org_dropdown" name="org_dropdown">
                 {% for org in org_ids %} {% if org is none %} {% else %}
                 <option value="{{ org['org_id'] if org else '' }}">
                   {{ org["org_id"] }} : {{ org["org_name"] }}
                 </option>
                 {% endif %} {% endfor %}
               </select>
+                    </div>
+
+                    <div class="sub-grid">
+                        <label>Scheduler Status:
+            <span class="fail-status statusDisplay" >Not Running</span>
+            
+            </label>
+
+
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <!-- US TEST CONTAINER -->
-        <div class="main-test-container">
-          <form id="testForm">
-            <h2>Select Tests to Run</h2>
-            <div class="grid">
-              {% for key, value in test_functions.items() %}
-              <div class="summary form__group" id="{{ key }}">
-                <fieldset>
-                  <legend>{{ key }}.py</legend>
-                  <div class="summary__data">
-                    {% for test in value %}
-                    <label>
+            <!-- US TEST CONTAINER -->
+            <div class="main-test-container">
+                <form id="testForm">
+                    <h2>Select Tests to Run</h2>
+                    <div class="grid">
+                        {% for key, value in test_functions.items() %}
+                        <div class="summary form__group" id="{{ key }}">
+                            <fieldset>
+                                <legend>{{ key }}.py</legend>
+                                <div class="summary__data">
+                                    {% for test in value %}
+                                    <label>
                     <input
                       type="checkbox"
                       name="test"
@@ -111,67 +98,72 @@
                       />
                     {{ test }}
                     </label>
-                    <br />
-                    {% endfor %}
-                    <br />
-                    <br />
-                  </div>
-                </fieldset>
-              </div>
-              {% endfor %}
+                                    <br /> {% endfor %}
+                                    <br />
+                                    <br />
+                                </div>
+                            </fieldset>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
             </div>
-          </form>
+            <div class="summary" id="bottom">
+                <label> <input type="checkbox" id="selectAll" /> Select All </label>
+                <br />
+                <br />
+                <button type="button" onclick="runTestsUS()">Run Selected Tests</button>
+                <button type="button" class="modal-btn">Schedule Tests</button>
+            </div>
+            <br />
+            <br />
         </div>
-        <div class="summary" id="bottom">
-          <label> <input type="checkbox" id="selectAll" /> Select All </label>
-          <br />
-          <br />
-          <button type="button" onclick="runTestsUS()">Run Selected Tests</button>
-        </div>
-        <br />
-        <br />
-      </div>
-      <!-- EU MAIN HUD -->
-      <div id="CC EU" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-            <div class="sub-grid">
-              {% if eu_status_verified %}
-              <label id="eu_status"
-                >Status:
+        <!-- CCEU Tab  -->
+        <div id="CC_EU" class="tabcontent" style="display:none">
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                    <div class="sub-grid">
+                        {% if eu_status_verified %}
+                        <label id="eu_status">Status:
               <span class="success-status">Connected</span>
-              </label>
-              {% else %}
-              <label
-                >Status:
+              </label> {% else %}
+                        <label>Status:
               <span class="fail-status">Not Connected</span>
-              </label>
-              {% endif %}
-            </div>
-            <div class="sub-grid" id="eu_org_select_container">
-              <label for="eu_org_dropdown">Current Org:</label>
-              <select id="eu_org_dropdown" name="eu_org_dropdown">
+              </label> {% endif %}
+                    </div>
+                    <div class="sub-grid" id="eu_org_select_container">
+                        <label for="eu_org_dropdown">Current Org:</label>
+                        <select id="eu_org_dropdown" name="eu_org_dropdown">
                 {% for org in eu_org_ids %} {% if org is none %} {% else %}
                 <option value="{{ org['org_id'] if org else '' }}">
                   {{ org["org_id"] }} : {{ org["org_name"] }}
                 </option>
                 {% endif %} {% endfor %}
               </select>
+                    </div>
+
+                    <div class="sub-grid">
+                        <label>Scheduler Status:
+                    <span class="fail-status statusDisplay" >Not Running</span>
+                    
+                    </label>
+
+
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <!-- EU TEST CONTAINER -->
-        <div class="main-test-container">
-          <form id="eu_testForm">
-            <h2>Select Tests to Run</h2>
-            <div class="grid">
-              {% for key, value in test_functions.items() %}
-              <div class="summary form__group" id="eu_{{ key }}">
-                <fieldset>
-                  <legend>{{ key }}.py</legend>
-                  <div class="summary__data">
-                    {% for test in value %}
-                    <label>
+            <!-- EU TEST CONTAINER -->
+            <div class="main-test-container">
+                <form id="eu_testForm">
+                    <h2>Select Tests to Run</h2>
+                    <div class="grid">
+                        {% for key, value in test_functions.items() %}
+                        <div class="summary form__group" id="eu_{{ key }}">
+                            <fieldset>
+                                <legend>{{ key }}.py</legend>
+                                <div class="summary__data">
+                                    {% for test in value %}
+                                    <label>
                     <input
                       type="checkbox"
                       name="eu_test"
@@ -181,80 +173,71 @@
                       />
                     {{ test }}
                     </label>
-                    <br />
-                    {% endfor %}
-                    <br />
-                    <br />
-                  </div>
-                </fieldset>
-              </div>
-              {% endfor %}
+                                    <br /> {% endfor %}
+                                    <br />
+                                    <br />
+                                </div>
+                            </fieldset>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
             </div>
-          </form>
+            <div class="summary" id="eu_bottom">
+                <label> <input type="checkbox" id="eu_selectAll" /> Select All </label>
+                <br />
+                <br />
+                <button type="button" onclick="runTestsEU()">Run Selected Tests</button>
+                <button type="button" class="modal-btn">Schedule Tests</button>
+            </div>
+            <br />
+            <br />
         </div>
-        <div class="summary" id="eu_bottom">
-          <label> <input type="checkbox" id="eu_selectAll" /> Select All </label>
-          <br />
-          <br />
-          <button type="button" onclick="runTestsEU()">Run Selected Tests</button>
-        </div>
-        <br />
-        <br />
-      </div>
-      <!-- CIS API Tab -->
-      <div id="CIS" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-            <div class="sub-grid">
-              {% if cis_status_verified %}
-              <label id="cis_status"
-                >CIS Domain Status:
+        <!-- CIS Tab -->
+        <div id="CIS" class="tabcontent" style="display:none">
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                    <div class="sub-grid">
+                        {% if cis_status_verified %}
+                        <label id="cis_status">CIS Domain Status:
               <span class="success-status">Connected</span>
-              </label>
-              {% else %}
-              <label
-                >CIS Domain Status::
+              </label> {% else %}
+                        <label>CIS Domain Status::
               <span class="fail-status">Not Connected</span>
-              </label>
-              {% endif %}
-            </div>
-            <div class="sub-grid">
-              {% if cis_validation_status_verified %}
-              <label id="cis_validation_status"
-                >CIS Validation Status:
+              </label> {% endif %}
+                    </div>
+                    <div class="sub-grid">
+                        {% if cis_validation_status_verified %}
+                        <label id="cis_validation_status">CIS Validation Status:
               <span class="success-status">Connected</span>
-              </label>
-              {% else %}
-              <label
-                >CIS Validation Status:
+              </label> {% else %}
+                        <label>CIS Validation Status:
               <span class="fail-status">Not Connected</span>
-              </label>
-              {% endif %}
-              
-            </div>
-            <div class="sub-grid">
-              <label
-                >Scheduler Status:
-              <span class="fail-status" id="statusDisplay">Not Running</span>
-              
-              </label>
-              
+              </label> {% endif %}
 
+                    </div>
+                    <div class="sub-grid">
+                        <label>Scheduler Status:
+              <span class="fail-status statusDisplay">Not Running</span>
+              
+              </label>
+
+
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <!-- CIS TEST CONTAINER -->
-        <div class="main-test-container">
-          <form id="cis_testForm">
-            <h2>Select Tests to Run</h2>
-            <div class="grid">
-              {% for key, value in cis_test_functions.items() %}
-              <div class="summary form__group" id="cis_{{ key }}">
-                <fieldset>
-                  <legend>{{ key }}.py</legend>
-                  <div class="summary__data">
-                    {% for test in value %}
-                    <label>
+            <!-- CIS TEST CONTAINER -->
+            <div class="main-test-container">
+                <form id="cis_testForm">
+                    <h2>Select Tests to Run</h2>
+                    <div class="grid">
+                        {% for key, value in cis_test_functions.items() %}
+                        <div class="summary form__group" id="cis_{{ key }}">
+                            <fieldset>
+                                <legend>{{ key }}.py</legend>
+                                <div class="summary__data">
+                                    {% for test in value %}
+                                    <label>
                     <input
                       type="checkbox"
                       name="cis_test"
@@ -264,219 +247,262 @@
                       />
                     {{ test }}
                     </label>
-                    <br />
-                    {% endfor %}
-                    <br />
-                    <br />
-                  </div>
-                </fieldset>
-              </div>
-              {% endfor %}
-            </div>
-          </form>
-        </div>
-        <div class="summary" id="cis_bottom">
-          <label> <input type="checkbox" id="cis_selectAll" /> Select All </label>
-          <br />
-          <br />
-          <button type="button" onclick="runTestsCIS()">Run Selected Tests</button>
-          <button type="button" id="modalBtn">Schedule Tests</button>
-        </div>
-        <br />
-        <br />
-        
-      </div>
-      <!-- CSR Keygen Tab -->
-      <div id="CSR/Key" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-          </div>
-        </div>
-        <div class="main-test-container">
-          <div class="csr-flex summary form__group">
-            <div>
-              <label>CSR</label></br>
-              <textarea name="CSR" id="csr_result" cols="40" rows="25"></textarea></br>
-            </div>
-            <div>
-              <label>KEY</label></br>
-              <textarea name="KEY" id="key_result"  cols="40" rows="25"></textarea></br>
-            </div>
-          </div>
-          <br>
-          <button id="gen_keypair_button">Create CSR/Key</button>
-          <br>
-        </div>
-      </div>
-      <div id="Reports" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-          </div>
-        </div>
-        <ul id="file-list">
-        </ul>
-      </div>
-      <!-- TLS Checker Tab -->
-      <div id="TLS Check" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-            <div class="main-test-container">
-              <div class="csr-grid summary form__group">
-                <div class="sub-grid">
-                  <form id="tls_check_form" onsubmit="event.preventDefault(); tlsChecker();">
-                    <label for="tls_check_label">Domain Name:</label>
-                    <input
-                      id="tls_check_label_input"
-                      name="tls_check_label"
-                      placeholder="Enter a domain name"            
-                      required
-                      />
-                    <label for="tls_ocsp_check">OCSP:</label>
-                    <input
-                      type="checkbox"
-                      name="tls_ocsp_check"
-                      id="tls_ocsp_check"
-                      />
-                    <button type="submit">Submit</button>
-                  </form>
-                  <br>
-                  <br>
-                  <br>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="main-test-container visible-scrollbar">
-          <div class="certificate-report" id="tls_check_div">
-          </div>
-        </div>
-      </div>
-      <!-- Settings Tab -->
-      <div id="Settings" class="tabcontent" style="display:none">
-        <div class="main-hud-container">
-          <div class="hud-grid">
-          </div>
-        </div>
-        <div class="main-test-container">
-          <div class="csr-grid summary form__group">
-            <div class="sub-grid">
-              <form id="api_key_eu_form">
-                <label for="api_key_eu">CertCentral EU API Key:</label>
-                {% if eu_status_verified %}
-                <span class="success-status"> Saved </span>
-                {% else %}
-                <span class="fail-status"> Not Saved </span>
-                {% endif %}
-                <br />
-                <input
-                  type="password"
-                  id="api_key_eu"
-                  name="api_key_eu"
-                  placeholder="Enter API Key"
-                  value="{{ api_key if api_key else '' }}"
-                  required
-                  />
-                <button type="submit">Save</button>
-              </form>
-              <br>
-              <br>
-            </div>
-          </div>
-          <br>
-          <div class="csr-grid summary form__group">
-            <div class="sub-grid">
-              <form id="api_key_us_form">
-                <label for="api_key_us">CertCentral US API Key:</label>
-                {% if status_verified %}
-                <span class="success-status"> Saved </span>
-                {% else %}
-                <span class="fail-status"> Not Saved </span>
-                {% endif %}
-                <br />
-                <input
-                  type="password"
-                  id="api_key_us"
-                  name="api_key_us"
-                  placeholder="Enter API Key"
-                  value="{{ api_key if api_key else '' }}"
-                  required
-                  />
-                <button type="submit">Save</button>
-              </form>
-              <br>
-              <br>
-            </div>
-          </div>
-          <br>
-          <div class="csr-grid summary form__group">
-            <div class="sub-grid">
-              <form id="api_key_cis_form">
-                <label for="api_key_cis">CIS API Key:</label>
-                {% if status_verified %}
-                <span class="success-status"> Saved </span>
-                {% else %}
-                <span class="fail-status"> Not Saved </span>
-                {% endif %}
-                <br />
-                <input
-                  type="password"
-                  id="api_key_cis"
-                  name="api_key_cis"
-                  placeholder="Enter API Key"
-                  value="{{ api_key if api_key else '' }}"
-                  required
-                  />
-                <button type="submit">Save</button>
-              </form>
-              <br>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- MODAL -->
-    <div id="modalContainer">
-      <div id="settingsModal" class="modal">
-        <!-- MODAL CONTENT -->
-        <div class="modal-content">
-          <div class="modal-header">
-            <span class="close">&times;</span>
-            <h2>Settings</h2>
-          </div>
-          <div class="modal-body">
-            <div class="modal-grid-container">
-              <div class="grid">
-                <form id="schedulerForm">
-                  <div class="summary form__group">
-                    <label for="interval" class="form-label">Interval (minutes)</label>
-                    <input type="number" class="form-control" id="interval" min="1" value="1">
-                  </div>
-                  <div class="summary form__group">
-                    <label for="repetitions" class="form-label">Repetitions</label>
-                    <input type="number" class="form-control" id="repetitions" min="1" value="3">
-                  </div>
-                  <button type="button" id="startBtn" class="btn btn-primary">Start</button>
-                  <button type="button" id="stopBtn" class="btn btn-danger" disabled>Stop</button>
-                  <button type="button" onclick=clearOutput()>Reset</button>
+                                    <br /> {% endfor %}
+                                    <br />
+                                    <br />
+                                </div>
+                            </fieldset>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </form>
-                
-              </div>
             </div>
-          </div>
-          <div class="modal-footer"></div>
+            <div class="summary" id="cis_bottom">
+                <label> <input type="checkbox" id="cis_selectAll" /> Select All </label>
+                <br />
+                <br />
+                <button type="button" onclick="runTestsCIS()">Run Selected Tests</button>
+                <button type="button" class="modal-btn">Schedule Tests</button>
+            </div>
+            <br />
+            <br />
+
         </div>
-      </div>
+         <!-- Reports Tab -->
+        <div id="Reports" class="tabcontent" style="display:none">
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                </div>
+            </div>
+            <ul id="file-list">
+            </ul>
+        </div>
+        <!-- TLS Checker Tab -->
+        <div id="Tools" class="tabcontent" style="display:none">
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                </div>
+            </div>
+
+            <div class="main-test-container">
+
+                <div class="column summary grid">
+                    <div class="row fieldset-row">
+                        <fieldset class="r-fieldset">
+
+                            <legend>TLS/OCSP Check</legend>
+                            <form id="tls_check_form" class="text-width" onsubmit="event.preventDefault(); tlsChecker(this);">
+
+                                <div class="row">
+                                    <textarea class="text-width" id="tls_check_label_input" name="tls_check_label" placeholder="Enter a domain name" required></textarea>
+                                </div>
+                                <div class="row2">
+
+                                    <label for="tls_ocsp_check">OCSP:</label>
+                                    <input type="checkbox" name="tls_ocsp_check" id="tls_ocsp_check" />
+                                    <button id="tlsmodalBtn" type="submit">Submit</button>
+                                </div>
+                            </form>
+                        </fieldset>
+                    </div>
+                    <div class="row fieldset-row">
+                        <fieldset class="r-fieldset">
+                            <legend>PEM OCSP Check</legend>
+                            <form id="pem_input_form" class="text-width" onsubmit="event.preventDefault(); tlsChecker(this);">
+
+                                <div class="row">
+
+                                    <textarea id="pem_input" class="text-width" rows="2" placeholder="Paste a PEM Certificate"></textarea>
+
+                                </div>
+                                <div class="row2">
+
+                                    <button id="pem_input_button" type="submit">Submit</button>
+                                </div>
+                            </form>
+
+                        </fieldset>
+                    </div>
+                    <div class="row fieldset-row">
+                        <fieldset class="r-fieldset">
+                            <legend>Generete Key/CSR</legend>
+
+                            <div class="row2 padding-15">
+
+                                <button id="gen_keypair_button">Create CSR/Key</button>
+                            </div>
+                            <div class="row2">
+                                <button id="view_keypair_button">View Last Keypair</button>
+                            </div>
+
+
+                        </fieldset>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+        <!-- Settings Tab -->
+        <div id="Settings" class="tabcontent" style="display:none">
+            <div class="main-hud-container">
+                <div class="hud-grid">
+                </div>
+            </div>
+            <div class="main-test-container">
+                <div class="csr-grid summary form__group">
+                    <div class="sub-grid">
+                        <form id="api_key_eu_form">
+                            <label for="api_key_eu">CertCentral EU API Key:</label> {% if eu_status_verified %}
+                            <span class="success-status"> Saved </span> {% else %}
+                            <span class="fail-status"> Not Saved </span> {% endif %}
+                            <br />
+                            <input type="password" id="api_key_eu" name="api_key_eu" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <button type="submit">Save</button>
+                        </form>
+                        <br>
+                        <br>
+                    </div>
+                </div>
+                <br>
+                <div class="csr-grid summary form__group">
+                    <div class="sub-grid">
+                        <form id="api_key_us_form">
+                            <label for="api_key_us">CertCentral US API Key:</label> {% if status_verified %}
+                            <span class="success-status"> Saved </span> {% else %}
+                            <span class="fail-status"> Not Saved </span> {% endif %}
+                            <br />
+                            <input type="password" id="api_key_us" name="api_key_us" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <button type="submit">Save</button>
+                        </form>
+                        <br>
+                        <br>
+                    </div>
+                </div>
+                <br>
+                <div class="csr-grid summary form__group">
+                    <div class="sub-grid">
+                        <form id="api_key_cis_form">
+                            <label for="api_key_cis">CIS API Key:</label> {% if status_verified %}
+                            <span class="success-status"> Saved </span> {% else %}
+                            <span class="fail-status"> Not Saved </span> {% endif %}
+                            <br />
+                            <input type="password" id="api_key_cis" name="api_key_cis" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <button type="submit">Save</button>
+                        </form>
+                        <br>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <script
-      type="text/javascript"
-      src='{{ url_for("static", filename="test_main.js") }}'
-      ></script>
-    <script
-      type="text/javascript"
-      src='{{ url_for("static", filename="notifications.js") }}'
-      ></script>
+
+    <!-- Scheduler Modal -->
+    <div id="modalContainer">
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>Scheduler</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-grid-container2">
+                        <form id="schedulerForm">
+                            <div class="row">
+                                <div class="column">
+                                    <label for="interval" class="form-label">Interval (minutes)</label>
+                                </div>
+                                <div class="column">
+                                    <input type="number" class="form-control" id="interval" min="1" value="1">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="column">
+
+                                    <label for="repetitions" class="form-label">Repetitions</label>
+                                </div>
+                                <div class="column">
+                                    <input type="number" class="form-control" id="repetitions" min="1" value="3">
+                                </div>
+                            </div>
+                        </form>
+                        <div class="row">
+                            <div class="column">
+                                <button type="button" id="startBtn" class="btn btn-primary">Start</button>
+                            </div>
+                            <div class="column">
+                                <button type="button" id="stopBtn" class="btn btn-danger" disabled>Stop</button>
+                            </div>
+                            <div class="column">
+                                <button type="button" onclick=clearOutput()>Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TLS OCSP Modal -->
+    <div id="tlsmodalContainer" class="visible-scrollbar">
+        <div id="tlsModal" class="stats-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close2">&times;</span>
+                    <h2>OCSP Check</h2>
+                </div>
+                <div class="modal-body visible-scrollbar">
+                    <div class="modal-grid-container2">
+                        <div class="column">
+                            <div id="tls_check_div"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSR Keygen Modal -->
+    <div id="csrmodalContainer" class="visible-scrollbar">
+        <div id="csrModal" class="csr-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close3">&times;</span>
+                    <h2>CSR/Private Key Generation</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-grid-container2">
+
+                        <div class="row">
+                            <div class="column">
+                                <div class="csr-flex summary form__group">
+                                    <div>
+                                        <label>CSR</label></br>
+                                        <textarea name="CSR" id="csr_result" cols="40" rows="25"></textarea></br>
+                                    </div>
+                                    <div>
+                                        <label>KEY</label></br>
+                                        <textarea name="KEY" id="key_result" cols="40" rows="25"></textarea></br>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src='{{ url_for("static", filename="test_main.js") }}'></script>
+    <script type="text/javascript" src='{{ url_for("static", filename="notifications.js") }}'></script>
     <script src="{{ url_for('static', filename='cis_scheduler.js') }}"></script>
-    
-  </body>
+
+</body>
+
 </html>

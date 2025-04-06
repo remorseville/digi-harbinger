@@ -23,6 +23,7 @@ class AsyncTestScheduler:
         self._file_name = ""
         self._next_run_time = 0
         self._countdown = 0
+        self._region = ""
         self._loop = asyncio.new_event_loop()
         self.logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class AsyncTestScheduler:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
         
-    async def schedule_tests(self, selected_tests, interval_min, repetitions):
+    async def schedule_tests(self, selected_tests, interval_min, repetitions, region):
         """Start the test scheduler with pytest-asyncio support"""
         if self._running:
             self.logger.warning("Scheduler already running")
@@ -44,6 +45,7 @@ class AsyncTestScheduler:
         self._repetitions = repetitions
         self._running = True
         self._current_iteration = 0
+        self._region = region
         self._next_run_time = datetime.now()
         self._countdown = self._interval * 60
         # Run in background thread to avoid blocking
@@ -70,7 +72,6 @@ class AsyncTestScheduler:
             
             try:
                 # Create partial function with current test selection
-                self._countdown = self._interval * 60 + 5
                 self._next_run_time = self._next_run_time + timedelta(
                     minutes=self._interval
                 )
@@ -79,19 +80,24 @@ class AsyncTestScheduler:
                     process_defined_tests,
                     selected_tests=self._selected_tests
                 )
-
-                
-                
-                #self._countdown = self._countdown - 1
-                
+               
                 # Run the pytest async tests
                 await test_runner()
                 now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
                 formatted_time = now.strftime("%Y%m%d%H%M%S")
                 source = self.resource_path('./templates/report.html')
 
-                destination = self.resource_path(f'./templates/reports/CIS_report_{formatted_time}.html')  # Custom report titles
-                self._file_name = f"CIS_report_{formatted_time}"
+                match self._region:
+                    case "CC_US":
+                        destination = self.resource_path(f'./templates/reports/CCUS_report_{formatted_time}.html')  # Custom report titles
+                        self._file_name = f"CCUS_report_{formatted_time}"
+                    case "CC_EU":
+                        destination = self.resource_path(f'./templates/reports/CCEU_report_{formatted_time}.html')  # Custom report titles
+                        self._file_name = f"CCEU_report_{formatted_time}"
+                    case "CIS":
+                        destination = self.resource_path(f'./templates/reports/CIS_report_{formatted_time}.html')  # Custom report titles
+                        self._file_name = f"CIS_report_{formatted_time}"
+                
 
                 try:
                     os.makedirs(os.path.dirname(destination), exist_ok=True)    # creates the "Templates/reports" directory  
@@ -127,12 +133,19 @@ class AsyncTestScheduler:
             next_run = datetime.now() + timedelta(
                 minutes=self._interval
             )
-            self._countdown = round((self._next_run_time - datetime.now()).total_seconds())
             
+            self._countdown = round((self._next_run_time - datetime.now()).total_seconds())
+        else: 
+            self._current_iteration = 0
+            self._selected_tests = None
+            self._interval = 0
+            self._repetitions = 0
+            self._task = None
+            self._file_name = ""
+            self._next_run_time = 0
+            self._countdown = 0
         
-        
-        
-        
+  
         return {
             "running": self._running,
             "current_iteration": self._current_iteration,
@@ -145,3 +158,4 @@ class AsyncTestScheduler:
     
     def get_file_name(self):
         return self._file_name
+    

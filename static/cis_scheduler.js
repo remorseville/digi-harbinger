@@ -3,28 +3,68 @@ document.addEventListener('DOMContentLoaded', function() {
     const stopBtn = document.getElementById('stopBtn');
     const intervalInput = document.getElementById('interval');
     const repetitionsInput = document.getElementById('repetitions');
-    const statusDisplay = document.getElementById('statusDisplay');
+    const statusDisplay = document.getElementsByClassName('statusDisplay');
+    
     
     let statusCheckInterval;
     
     startBtn.addEventListener('click', startScheduler);
     stopBtn.addEventListener('click', stopScheduler);
     
-
-    
-
-
     
     function startScheduler() {
         const interval = parseInt(intervalInput.value);
         const repetitions = parseInt(repetitionsInput.value);
-        const form = document.getElementById('cis_testForm');
-	    const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#cis_selectAll)');
-	    const selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
-        console.log(selectedTests)
-        const fileList = document.getElementById('file-list');
+
+        const tabcontent = document.getElementsByClassName("tabcontent");
+
+        let activeTab = Array.from(tabcontent).find(el => 
+            window.getComputedStyle(el).display !== 'none'
+        );
         
-        
+        let form;
+        let checkboxes;
+        let selectedTests;
+
+        switch (activeTab.id) {
+            case "CIS":
+               form = document.getElementById('cis_testForm');
+	           checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#cis_selectAll)');
+	           selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+               if (checkboxes.length !== 0) {
+
+                break;
+               } else {
+                alert('No tests selected!');
+                return;
+               }
+            case "CC_US":
+              form = document.getElementById('testForm');
+	           checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');
+	           selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+               if (checkboxes.length !== 0) {
+
+                break;
+               } else {
+                alert('No tests selected!');
+                return;
+               }
+           
+            case "CC_EU":
+              form = document.getElementById('eu_testForm');
+	           checkboxes = form.querySelectorAll('input[type="checkbox"]:checked:not(#eu_selectAll)');
+	           selectedTests = Array.from(checkboxes).map(checkbox => checkbox.value);
+               if (checkboxes.length !== 0) {
+
+                break;
+               } else {
+                alert('No tests selected!');
+                return;
+               }
+            default:
+              null;
+          }
+
         fetch('/start-tests', {
             method: 'POST',
             headers: {
@@ -34,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 interval: interval,
                 repetitions: repetitions, 
                 selected_tests: selectedTests,
+                region: activeTab.id
             })
         })
         .then(response => response.json())
@@ -41,13 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStatus(data.status);
             startBtn.disabled = true;
             stopBtn.disabled = false; 
-            startStatusPolling();
-            notifications.show(
-				'View your report\n', 
-				'info', 
-				{ text: `ds`, url: `dss` }, 
-				60000
-			);
+            startStatusPolling();  
+            
         });
     }
     
@@ -61,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
             startBtn.disabled = false;
             stopBtn.disabled = true;
             stopStatusPolling();
+            
+            notifications.hideStatusBanner();
         });
     }
     
@@ -68,58 +106,52 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status.running) {
             const nextRun = status.next_run; //? new Date(status.next_run).toLocaleTimeString() : 'N/A';
             const nextRunTime = status.next_run_time ? new Date(status.next_run_time).toLocaleTimeString() : "N/A";
-            statusDisplay.classList.remove('fail-status');
-            statusDisplay.classList.add('success-status');
-            statusDisplay.innerHTML = `
-                
-                    <strong>Running</strong> 
-                
-            `;
-            document.getElementById('output').innerHTML = `
-                <strong>Run:</strong> ${status.current_iteration}/${status.total_iterations}
-
-            `;
+            for (let i = 0; i < statusDisplay.length; i++) {
+                statusDisplay[i].classList.remove('fail-status');
+                statusDisplay[i].classList.add('success-status');
+                statusDisplay[i].innerHTML = `<strong>Running</strong>`;
+              }
             
-            document.getElementById('next_run').innerHTML = `
-                
-                <strong>Next Run:</strong> ${nextRunTime}         
+           
+            notifications.updateStatusBanner(`
+                Run: ${status.current_iteration}/${status.total_iterations} Next Run: ${nextRunTime}  (${nextRun} Seconds)
 
-            `;
-            document.getElementById('next_run_seconds').innerHTML = `
-                
-                (${nextRun} <strong>Seconds</strong>)
-
-            `;
+            `, 'info');
+            
+            
         } else {
-            statusDisplay.innerHTML = `    
-                    Not running
-            `;
-            statusDisplay.classList.remove('success-status');
-            statusDisplay.classList.add('fail-status');
-            document.getElementById('output').innerHTML = "";
-            document.getElementById('next_run').innerHTML = "";
-            document.getElementById('next_run_seconds').innerHTML = "";
 
+            for (let i = 0; i < statusDisplay.length; i++) {
+                statusDisplay[i].innerHTML = `Not running`;
+                statusDisplay[i].classList.remove('success-status');
+                statusDisplay[i].classList.add('fail-status');
+              }
 
+            notifications.hideStatusBanner();
         }
     }
     
     function startStatusPolling() {
-        let notificationShown = false; // Track if notification was shown
+        let notificationShown = false;
+        let wasEverRunning = false;  // Track if it was ever running
+        
         statusCheckInterval = setInterval(() => {
             fetch('/status')
                 .then(response => response.json())
                 .then(data => {
                     updateStatus(data);
-                    if (data.running === false && !notificationShown) {
+                    if (data.running === true) {
+                        wasEverRunning = true;  // Mark as running at least once
+                    }
+                    
+                    if (data.running === false && !notificationShown && wasEverRunning) {
                         notifications.show("All Finished!", "info");
-                        notificationShown = true; // Mark as shown
-                        clearInterval(statusCheckInterval); // Stop polling (optional)
+                        notificationShown = true;
+                        clearInterval(statusCheckInterval);
                         repetitions = 0;
-                        document.getElementById('output').innerHTML = "";
                     }
                 });
-        }, 5000);  // Update every 5 seconds
+        }, 5000);
     }
     
     function stopStatusPolling() {
@@ -132,4 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/status')
         .then(response => response.json())
         .then(updateStatus);
+    startStatusPolling();
 });
+

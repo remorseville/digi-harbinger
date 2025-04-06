@@ -22,6 +22,7 @@ from tests import crypto
 from conftest import process_defined_tests
 from utils.sqlite_kv_store import kv_store
 from utils.ocsp_check import check_certificate_revocation
+from utils.ocsp_check import check_certificate_revocation_pem
 from utils.scheduler import AsyncTestScheduler
 
 
@@ -291,16 +292,47 @@ def help_check():
         return
 
 
-@app.route('/ocsp')
+from urllib.parse import unquote
+import re
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives import serialization
+from cryptography.x509 import load_pem_x509_certificate, load_der_x509_certificate
+from cryptography import exceptions as crypto_exceptions
+from OpenSSL import crypto as crypto_open
+
+@app.route('/ocsp', methods=['POST', 'GET'])
 def ocsp_check():
     cn = request.args.get('cn')
+    pem = request.args.get('pem')
     
     if cn:
         result = check_certificate_revocation(cn)
         return result
-    else:
-        return
+    elif request.method == 'POST':
+        try:
+            # URL-decode and clean the PEM data
+            data = request.get_json()
+            pem_cert = data['pem']
 
+            try:
+                cert = crypto_open.load_certificate(crypto_open.FILETYPE_PEM, pem_cert.encode())
+            except Exception as e:
+                return jsonify({'error': f'Invalid PEM certificate: {str(e)}'}), 400
+            
+            # Convert to cryptography format for OCSP
+            cert_bytes = crypto_open.dump_certificate(crypto_open.FILETYPE_ASN1, cert)
+            cert_crypto = load_der_x509_certificate(cert_bytes, default_backend())
+
+            result = check_certificate_revocation_pem(cert_crypto)
+            return result
+            
+        except Exception as e:
+            error_message = f'<p class="error">❌ Error processing certificate: {str(e)}</p>'
+            return error_message
+    else:
+        error_message = '<p class="error">❌ Please provide either a CN (cn=) or PEM certificate (pem=) parameter</p>'
+        return error_message
 
 """ 
 Test Scheduler - Start, Stop, Status - My attempt at running x amount of tests every x minutes.
@@ -313,7 +345,27 @@ async def start_tests():
     data = request.get_json()
     full_selected_tests = []
     selected_tests = data.get('selected_tests', [])
-    for key, tests in CIS_TEST_FUNCTIONS.items():                   # Global CIS_TEST_FUNCTIONS
+    region = data.get('region')
+
+    match region:
+        case "CC_US":
+            ENV_STORE = kv_store
+            ENV_STORE.set("US_MODE", "true") 
+            for key, tests in TEST_FUNCTIONS.items():                   # Global CIS_TEST_FUNCTIONS
+                for test in tests:
+                    test_name = test.split("::")[1]       
+                    if test_name in selected_tests:
+                        full_selected_tests.append(test)
+        case "CC_EU":
+            ENV_STORE = kv_store
+            ENV_STORE.set("US_MODE", "false") 
+            for key, tests in TEST_FUNCTIONS.items():                   # Global TEST_FUNCTIONS
+                for test in tests:
+                    test_name = test.split("::")[1]       
+                    if test_name in selected_tests:
+                        full_selected_tests.append(test)
+        case "CIS":
+            for key, tests in CIS_TEST_FUNCTIONS.items():                   # Global TEST_FUNCTIONS
                 for test in tests:
                     test_name = test.split("::")[1]       
                     if test_name in selected_tests:
@@ -327,7 +379,8 @@ async def start_tests():
     success = await scheduler.schedule_tests(
         selected_tests=full_selected_tests,
         interval_min=interval,
-        repetitions=repetitions
+        repetitions=repetitions, 
+        region=region
 
     )
 
