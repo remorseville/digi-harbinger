@@ -101,7 +101,19 @@ document.addEventListener('DOMContentLoaded', function() {
             notifications.hideStatusBanner();
         });
     }
+
+
+    function formatDurationCompact(seconds) {
+        if (seconds < 60) {
+            return seconds + "s";
+        } else {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return minutes + "m" + (remainingSeconds > 0 ? " " + remainingSeconds + "s" : "");
+        }
+    }
     
+    let count = 0
     function updateStatus(status) {
         if (status.running) {
             const nextRun = status.next_run; //? new Date(status.next_run).toLocaleTimeString() : 'N/A';
@@ -112,13 +124,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusDisplay[i].innerHTML = `<strong>Running</strong>`;
               }
             
-           
-            notifications.updateStatusBanner(`
-                Run: ${status.current_iteration}/${status.total_iterations} Next Run: ${nextRunTime}  (${nextRun} Seconds)
-
-            `, 'info');
-            
-            
+            if (nextRun === 0){ 
+                
+                if (count > 2){
+                    count = 0
+                }
+                let array = ["Processing.", "Processing..", "Processing..."]
+                
+                notifications.updateStatusBanner(`
+                    Run: ${status.current_iteration}/${status.total_iterations} ${array[count]}
+    
+                `, 'info');
+                count = count +1
+            } else {
+                let time = formatDurationCompact(nextRun)
+                notifications.updateStatusBanner(`
+                    Run: ${status.current_iteration}/${status.total_iterations} Next Run: ${nextRunTime}  (${time})
+    
+                `, 'info');
+            }
+    
         } else {
 
             for (let i = 0; i < statusDisplay.length; i++) {
@@ -126,7 +151,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusDisplay[i].classList.remove('success-status');
                 statusDisplay[i].classList.add('fail-status');
               }
-
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
             notifications.hideStatusBanner();
         }
     }
@@ -151,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         repetitions = 0;
                     }
                 });
-        }, 5000);
+        }, 1000);
     }
     
     function stopStatusPolling() {

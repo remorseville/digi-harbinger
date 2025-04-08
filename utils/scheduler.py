@@ -66,15 +66,10 @@ class AsyncTestScheduler:
         while self._running and self._current_iteration < self._repetitions:
             self._current_iteration += 1
             self.logger.info(f"Test cycle {self._current_iteration}/{self._repetitions}")
-            print(self._selected_tests)
-            print(self._next_run_time)
             
             
             try:
                 # Create partial function with current test selection
-                self._next_run_time = self._next_run_time + timedelta(
-                    minutes=self._interval
-                )
 
                 test_runner = partial(
                     process_defined_tests,
@@ -83,9 +78,16 @@ class AsyncTestScheduler:
                
                 # Run the pytest async tests
                 await test_runner()
+                self._next_run_time = datetime.now() + timedelta(
+                    minutes=self._interval
+                )
+                
+
                 now = datetime.now()                                        # Date/time handling for report filenames - appends to "report_****.html"
                 formatted_time = now.strftime("%Y%m%d%H%M%S")
                 source = self.resource_path('./templates/report.html')
+
+                
 
                 match self._region:
                     case "CC_US":
@@ -115,6 +117,7 @@ class AsyncTestScheduler:
 
             # Wait for interval unless we're done
             if self._running and self._current_iteration < self._repetitions:
+                
                 await asyncio.sleep(self._interval * 60)
                 
         self.stop()
@@ -134,7 +137,7 @@ class AsyncTestScheduler:
                 minutes=self._interval
             )
             
-            self._countdown = round((self._next_run_time - datetime.now()).total_seconds())
+            self._countdown = max(0, round((self._next_run_time - datetime.now()).total_seconds()))
         else: 
             self._current_iteration = 0
             self._selected_tests = None

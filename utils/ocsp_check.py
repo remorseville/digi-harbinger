@@ -179,7 +179,7 @@ def check_certificate_revocation(url):
                     messages.append(f"  Next Update: {ocsp_response.next_update_utc}")
                 return format_html_result(url, messages, True)
             elif ocsp_response.certificate_status == ocsp.OCSPCertStatus.REVOKED:
-                revoked_info = ocsp_response.revocation_time
+                revoked_info = ocsp_response.revocation_time_utc
                 reason = ocsp_response.revocation_reason.name if ocsp_response.revocation_reason else "unspecified"
                 messages.append(f'<p class="error">❌ Certificate REVOKED since {revoked_info} (reason: {reason})</p>')
                 return format_html_result(url, messages, False)
@@ -232,7 +232,7 @@ def check_certificate_revocation_pem(cert):
                     messages.append(f"  Next Update: {ocsp_response.next_update_utc}")
                 return format_html_result(common_name, messages, True)
             elif ocsp_response.certificate_status == ocsp.OCSPCertStatus.REVOKED:
-                revoked_info = ocsp_response.revocation_time
+                revoked_info = ocsp_response.revocation_time_utc
                 reason = ocsp_response.revocation_reason.name if ocsp_response.revocation_reason else "unspecified"
                 messages.append(f'<p class="error">❌ Certificate REVOKED since {revoked_info} (reason: {reason})</p>')
                 return format_html_result(common_name, messages, False)

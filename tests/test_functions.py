@@ -57,9 +57,9 @@ def test_scripts():
             "./tests/certificates.py::test_download_certificate_p7b",
             "./tests/certificates.py::test_download_certificate_cer",
         ],
-        "tools": [
-            "./tests/tools.py::test_list_replacement_benefits"
-        ],
+        #"tools": [
+        #    "./tests/tools.py::test_list_replacement_benefits"
+        #],
         "containers": [
             "./tests/containers.py::test_list_containers",
             "./tests/containers.py::test_container_info"

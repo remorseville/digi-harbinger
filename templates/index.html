@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title id="head-title">( ˶°ㅁ°) !!</title>
+    <title id="head-title">v1.0</title>
     <link rel="icon" type="image/x-icon" href='{{ url_for("static", filename="favicon.ico") }}'>
     <link rel="stylesheet" href='{{ url_for("static", filename="css/style.css") }}' type="text/css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -16,7 +16,7 @@
 
     <div id="navbar">
         <div id="title-bar-div2" class="title-bar">
-            <a id="home-link">Version 0.7</a>
+            <a id="home-link">&#10240;</a>
             <h1 id="title">Digi-Harbinger</h1>
         </div>
         <div class="tab">
@@ -72,8 +72,6 @@
             <span class="fail-status statusDisplay" >Not Running</span>
             
             </label>
-
-
                     </div>
                 </div>
             </div>
@@ -99,8 +97,7 @@
                     {{ test }}
                     </label>
                                     <br /> {% endfor %}
-                                    <br />
-                                    <br />
+
                                 </div>
                             </fieldset>
                         </div>
@@ -174,8 +171,7 @@
                     {{ test }}
                     </label>
                                     <br /> {% endfor %}
-                                    <br />
-                                    <br />
+
                                 </div>
                             </fieldset>
                         </div>
@@ -248,8 +244,6 @@
                     {{ test }}
                     </label>
                                     <br /> {% endfor %}
-                                    <br />
-                                    <br />
                                 </div>
                             </fieldset>
                         </div>
@@ -274,8 +268,8 @@
                 <div class="hud-grid">
                 </div>
             </div>
-            <ul id="file-list">
-            </ul>
+            <div class="main-test-container" id="file-list">
+            </div>
         </div>
         <!-- TLS Checker Tab -->
         <div id="Tools" class="tabcontent" style="display:none">
@@ -286,43 +280,29 @@
 
             <div class="main-test-container">
 
-                <div class="column summary grid">
-                    <div class="row fieldset-row">
+                <div class="column summary grid-container">
+                    <div class="row fieldset-row item1">
                         <fieldset class="r-fieldset">
 
                             <legend>TLS/OCSP Check</legend>
                             <form id="tls_check_form" class="text-width" onsubmit="event.preventDefault(); tlsChecker(this);">
 
                                 <div class="row">
-                                    <textarea class="text-width" id="tls_check_label_input" name="tls_check_label" placeholder="Enter a domain name" required></textarea>
+                                    <input class="text-width" id="tls_check_label_input" name="tls_check_label" placeholder="Enter a domain name" required></input>
                                 </div>
                                 <div class="row2">
 
                                     <label for="tls_ocsp_check">OCSP:</label>
                                     <input type="checkbox" name="tls_ocsp_check" id="tls_ocsp_check" />
-                                    <button id="tlsmodalBtn" type="submit">Submit</button>
+                                    <div class="left-padding-15">
+                                      <button id="tlsmodalBtn"  type="submit">Submit</button>
+                                    </div>
+                                    
                                 </div>
                             </form>
                         </fieldset>
                     </div>
-                    <div class="row fieldset-row">
-                        <fieldset class="r-fieldset">
-                            <legend>PEM OCSP Check</legend>
-                            <form id="pem_input_form" class="text-width" onsubmit="event.preventDefault(); tlsChecker(this);">
 
-                                <div class="row">
-
-                                    <textarea id="pem_input" class="text-width" rows="2" placeholder="Paste a PEM Certificate"></textarea>
-
-                                </div>
-                                <div class="row2">
-
-                                    <button id="pem_input_button" type="submit">Submit</button>
-                                </div>
-                            </form>
-
-                        </fieldset>
-                    </div>
                     <div class="row fieldset-row">
                         <fieldset class="r-fieldset">
                             <legend>Generete Key/CSR</legend>
@@ -338,6 +318,51 @@
 
                         </fieldset>
                     </div>
+
+
+                    <div class="row fieldset-row item2">
+                        <fieldset class="r-fieldset">
+                            <legend>PEM OCSP Check</legend>
+                            <form id="pem_input_form" class="text-width" onsubmit="event.preventDefault(); tlsChecker(this);">
+
+                                <div class="row">
+
+                                    <textarea id="pem_input" class="text-width" rows="20" placeholder="Paste a PEM Certificate"></textarea>
+
+                                </div>
+                                <div class="row2">
+                                  <div>
+                                    <button id="pem_input_button" type="submit">Submit</button>
+                                  </div>
+
+                                    <div class="left-padding-15">
+                                      <button id="clear_pem_input_button" type="reset">Clear</button>
+                                    </div>
+                                    
+                                </div>
+                            </form>
+
+                        </fieldset>
+                    </div>
+
+
+                    
+
+                    <div class="row fieldset-row item3">
+                      <fieldset class="r-fieldset">
+                          <legend>Delete Cleanup Script</legend>
+
+                          <div class="row2 padding-15">
+
+                              <button>Placeholder</button>
+                          </div>
+                          <div class="row2">
+                              <button>Placeholder</button>
+                          </div>
+
+
+                      </fieldset>
+                  </div>
                 </div>
 
             </div>
@@ -351,52 +376,69 @@
                 </div>
             </div>
             <div class="main-test-container">
-                <div class="csr-grid summary form__group">
-                    <div class="sub-grid">
-                        <form id="api_key_eu_form">
+                <div class="csr-grid summary form__group grid">
+                  <div class="sub-grid">
+
+                    <fieldset>
+                      <legend>API Keys</legend>
+                        <div class="row2 fieldset-row">
+                          <form id="api_key_eu_form">
                             <label for="api_key_eu">CertCentral EU API Key:</label> {% if eu_status_verified %}
                             <span class="success-status"> Saved </span> {% else %}
                             <span class="fail-status"> Not Saved </span> {% endif %}
                             <br />
                             <input type="password" id="api_key_eu" name="api_key_eu" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <br>
                             <button type="submit">Save</button>
                         </form>
-                        <br>
-                        <br>
-                    </div>
-                </div>
-                <br>
-                <div class="csr-grid summary form__group">
-                    <div class="sub-grid">
-                        <form id="api_key_us_form">
+  
+                        </div>
+                        
+                        <div class="row2 fieldset-row">
+                          <form id="api_key_us_form">
                             <label for="api_key_us">CertCentral US API Key:</label> {% if status_verified %}
                             <span class="success-status"> Saved </span> {% else %}
                             <span class="fail-status"> Not Saved </span> {% endif %}
                             <br />
                             <input type="password" id="api_key_us" name="api_key_us" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <br>
                             <button type="submit">Save</button>
                         </form>
-                        <br>
-                        <br>
-                    </div>
-                </div>
-                <br>
-                <div class="csr-grid summary form__group">
-                    <div class="sub-grid">
-                        <form id="api_key_cis_form">
+  
+                        </div>
+                        <div class="row2 fieldset-row">
+                          <form id="api_key_cis_form">
                             <label for="api_key_cis">CIS API Key:</label> {% if status_verified %}
                             <span class="success-status"> Saved </span> {% else %}
                             <span class="fail-status"> Not Saved </span> {% endif %}
                             <br />
                             <input type="password" id="api_key_cis" name="api_key_cis" placeholder="Enter API Key" value="{{ api_key if api_key else '' }}" required />
+                            <br>
                             <button type="submit">Save</button>
                         </form>
-                        <br>
-                    </div>
+                        </div>
+                    
+                    </fieldset>
+
+
+
+                  </div>
+                  <div class="sub-grid">
+
+                    <fieldset>
+                      <legend>Custom Domain</legend>
+                        <div class="row2 fieldset-row">
+                          <span>I am a placeholder</span>
+                        </div>
+                    </fieldset>
+                  </div>
+
+                  </div>
                 </div>
-            </div>
         </div>
     </div>
+        
+    
 
     <!-- Scheduler Modal -->
     <div id="modalContainer">
@@ -447,11 +489,11 @@
 
     <!-- TLS OCSP Modal -->
     <div id="tlsmodalContainer" class="visible-scrollbar">
-        <div id="tlsModal" class="stats-modal">
+        <div id="tlsModal" class="stats-modal visible-scrollbar">
             <div class="modal-content">
                 <div class="modal-header">
                     <span class="close2">&times;</span>
-                    <h2>OCSP Check</h2>
+                    <h2 id="check_title">OCSP Check</h2>
                 </div>
                 <div class="modal-body visible-scrollbar">
                     <div class="modal-grid-container2">

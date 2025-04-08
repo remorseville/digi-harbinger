@@ -6,28 +6,29 @@ import shutil
 import time
 import ctypes
 import importlib
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify
-from flask import send_from_directory
-from flaskwebgui import FlaskUI
 import keyring
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, send_from_directory
+from flaskwebgui import FlaskUI
 from collections import deque
 from threading import Lock
 
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import load_pem_x509_certificate, load_der_x509_certificate
+from OpenSSL import crypto as crypto_open
+
 # Local file imports
 #from conftest import process_defined_tests  # Configuration file for the pytest module
-from tests.test_functions import test_scripts
-from tests.test_functions import cis_test_scripts
 from tests import crypto
 from conftest import process_defined_tests
+from tests.test_functions import test_scripts, cis_test_scripts
 from utils.sqlite_kv_store import kv_store
-from utils.ocsp_check import check_certificate_revocation
-from utils.ocsp_check import check_certificate_revocation_pem
+from utils.ocsp_check import check_certificate_revocation, check_certificate_revocation_pem
 from utils.scheduler import AsyncTestScheduler
 
 
 # __________________________ Environment ________________________________ #
-# ----------------------------------------------------------------------- #
 
 app = Flask(__name__)                       # Main Flask App
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Required for hot-reloading of html otherwise you'll see cached versions
@@ -54,10 +55,9 @@ kv_store.set("US_MODE", "true")                 # Sets mode to "true" on load - 
 
 
 # __________________________ Routes ________________________________ #
-# ------------------------------------------------------------------ #
 
 """ 
-Homepage 
+Main Homepage 
 """
 @app.route('/', methods=['GET', 'POST'])  
 async def index():
@@ -112,8 +112,6 @@ async def report():
     if request.method == 'POST':                # "Mode" check - Used for calling the Certcentral us api vs. Certcentral eu api (base_url)
 
         cis_api = request.args.get('api')
-        
-        scheduler_mode = request.args.get('scheduler_mode')
         
         # CIS API Handling
         if cis_api:
@@ -207,7 +205,7 @@ async def report():
 
 
 """ 
-API key env variable form endpoint 
+API key env variable form endpoint - Saves API keys to Windows Credential Manager
 """
 @app.route('/submit_', methods=['POST'])
 def submit_env_variables():
@@ -277,6 +275,9 @@ def gen_keypair():
     return jsonify({"csr": keypair["csr"], "key": keypair["key"]})
 
 
+
+# __________________________ SSL/TLS Utilities ________________________________ #
+
 """  
 SSL Checker - Same that 'digicert.com/help' uses, but just the html <div> element is returned 
 """
@@ -292,15 +293,9 @@ def help_check():
         return
 
 
-from urllib.parse import unquote
-import re
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_pem_x509_certificate, load_der_x509_certificate
-from cryptography import exceptions as crypto_exceptions
-from OpenSSL import crypto as crypto_open
-
+"""  
+OCSP Check - Handles both versions. By PEM and by HTTPS
+"""
 @app.route('/ocsp', methods=['POST', 'GET'])
 def ocsp_check():
     cn = request.args.get('cn')
@@ -333,6 +328,9 @@ def ocsp_check():
     else:
         error_message = '<p class="error">❌ Please provide either a CN (cn=) or PEM certificate (pem=) parameter</p>'
         return error_message
+
+
+# __________________________ Scheduling System ________________________________ #
 
 """ 
 Test Scheduler - Start, Stop, Status - My attempt at running x amount of tests every x minutes.
@@ -403,28 +401,21 @@ def get_status():
     return jsonify(scheduler.get_status())
 
 
+@app.route('/store')
+def get_kv():
+    ENV_STORE = kv_store
+    csr = ENV_STORE.get("CSR")
+    key = ENV_STORE.get("PRIVATE_KEY")
+    return jsonify({"csr": csr, "key": key})
+
 
 """
-Output Display
+Output Display Buffer
 """
 output_buffer = deque(maxlen=100)  # Keep last 100 lines
 buffer_lock = Lock()
 
-# Custom stream class to capture stdout
-class OutputCapture:
-    def write(self, text):
-        with buffer_lock:
-            output_buffer.append(text)
-        # Also write to original stdout if needed
-        #sys.__stdout__.write(text)
-    
-    def flush(self):
-        pass
-
-#sys.stdout.isatty = lambda: False
-out_capture = OutputCapture()
-
-@app.route('/testing', methods=['POST'])
+@app.route('/testing', methods=['POST'])  # TODO Used? Remove? 
 def output():
     data = request.get_json()
 
@@ -448,10 +439,7 @@ def reset_output():
         return "ok"
 
 
-
-
 # __________________________ Functions ________________________________ #
-# --------------------------------------------------------------------- #
 
 """
 Default api request helper - slightly different as this includes the base_url, 
@@ -590,7 +578,8 @@ async def cis_validation_ping_get_account_values():
         CIS_VALIDATION_STATUS_VERIFIED = False
         return
 
-# ------------------------------- Main ------------------------------------ #
+
+# __________________________ App Config ________________________________ #
 
 """ 
 Defines the user's screen size so it can be used for app window placement 
@@ -627,8 +616,8 @@ if __name__ == "__main__":
         print("on_exit bye")
 
     # App dimensions and screen placement on load
-    app_width = 1100
-    app_height = 950
+    app_width = 890
+    app_height = 975
     screen_dimensions = user_screen_size()
     screen_x = (screen_dimensions[0] / 2) - (app_width / 2)
     screen_y = (screen_dimensions[1] / 2) - (app_height / 2)

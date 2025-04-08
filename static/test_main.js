@@ -2,13 +2,42 @@
 Keypair Gen Handling
 
 	Fetch request to flask endpoint, creating a key and CSR. No parameters used.
-	Returns PEM text to display on "CSR/Key" tab within app
+	Returns PEM text to display on utilites tab within app
 
 */
 document
   .getElementById('gen_keypair_button')
   .addEventListener('click', function () {
     fetch('/keypair')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('csr_result').value = data.csr
+        document.getElementById('key_result').value = data.key
+        csrModal.style.display = 'block'
+        csrmodalContainer.style.display = 'block'
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error)
+        document.getElementById('csr_result').value = 'Failed to fetch data.'
+        document.getElementById('key_result').value = 'Failed to fetch data.'
+        csrModal.style.display = 'block'
+        csrmodalContainer.style.display = 'block'
+      })
+  })
+
+
+
+/** 
+Keypair Gen Handling
+
+	Fetch last generated keypair
+	Returns PEM text to display on utilites tab within app
+
+*/
+document
+  .getElementById('view_keypair_button')
+  .addEventListener('click', function () {
+    fetch('/store')
       .then(response => response.json())
       .then(data => {
         document.getElementById('csr_result').value = data.csr
@@ -507,18 +536,17 @@ function openTab (evt, tabName) {
 }
 
 // Fetch Directory Report List
-
-function fetchDirectory () {
+function fetchDirectory() {
   fetch('/list-directory')
     .then(response => response.json())
     .then(data => {
-      const fileListContainer = document.getElementById('file-list')
-      fileListContainer.innerHTML = ''
+      const fileListContainer = document.getElementById('file-list');
+      fileListContainer.innerHTML = '';
 
       // error handling
       if (data.error) {
-        fileListContainer.innerHTML = `<div>${data.error}</div>`
-        return
+        fileListContainer.innerHTML = `<div>${data.error}</div>`;
+        return;
       }
 
       // Categorize files by prefix
@@ -527,88 +555,100 @@ function fetchDirectory () {
         CCEU: [],
         CIS: [],
         other: []
-      }
+      };
 
       data.files.forEach(file => {
         if (file.startsWith('CCUS')) {
-          categorizedFiles.CCUS.push(file)
+          categorizedFiles.CCUS.push(file);
         } else if (file.startsWith('CCEU')) {
-          categorizedFiles.CCEU.push(file)
+          categorizedFiles.CCEU.push(file);
         } else if (file.startsWith('CIS')) {
-          categorizedFiles.CIS.push(file)
-        } else {
-          categorizedFiles.other.push(file)
+          categorizedFiles.CIS.push(file);
         }
-      })
+      });
 
-      // Create columns container
-      const columnsContainer = document.createElement('div')
-      columnsContainer.style.display = 'flex'
-      columnsContainer.style.gap = '20px'
-
-      // Create columns for each category
-      ['CCUS', 'CCEU', 'CIS'].forEach(prefix => {
-        if (categorizedFiles[prefix].length > 0) {
-          const fieldset = document.createElement('fieldset')
-          const legend = document.createElement('legend')
-          legend.innerHTML = prefix
-
-          const column = document.createElement('div')
-          column.style.flex = '1'
-
-          const list = document.createElement('ul')
-          list.style.listStyleType = 'none'
-          list.style.padding = '0'
-
-          categorizedFiles[prefix].forEach(file => {
-            const listItem = document.createElement('li')
-            const link = document.createElement('a')
-            link.href = `/report?id=${file}`
-            link.textContent = file
-            listItem.appendChild(link)
-            list.appendChild(listItem)
-          })
-
-          column.appendChild(list)
-          fieldset.appendChild(legend)
-          fieldset.appendChild(column)
-          columnsContainer.appendChild(fieldset)
-        }
-      })
-
-      // Add other files if they exist
-      if (categorizedFiles.other.length > 0) {
-        const otherColumn = document.createElement('div')
-        otherColumn.style.flex = '1'
-
-        const header = document.createElement('h3')
-        header.textContent = 'Other Files'
-        otherColumn.appendChild(header)
-
-        const list = document.createElement('ul')
-        list.style.listStyleType = 'none'
-        list.style.padding = '0'
-
-        categorizedFiles.other.forEach(file => {
-          const listItem = document.createElement('li')
-          const link = document.createElement('a')
-          link.href = `/report?id=${file}`
-          link.textContent = file
-          listItem.appendChild(link)
-          list.appendChild(listItem)
-        })
-
-        otherColumn.appendChild(list)
-        columnsContainer.appendChild(otherColumn)
+      // Function to parse date from filename and format it
+      function formatFileDate(filename) {
+        // Extract the timestamp (last 14 digits)
+        const timestamp = filename.match(/\d{14}$/);
+        if (!timestamp) return '';
+        
+        const dateStr = timestamp[0];
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        const hours = dateStr.substring(8, 10);
+        const minutes = dateStr.substring(10, 12);
+        const seconds = dateStr.substring(12, 14);
+        
+        // Create a Date object
+        const date = new Date(`${year}-${month}-${day}T${hours}:${minutes}:${seconds}`);
+        
+        // Format as "MMM DD, YYYY at HH:MM:SS"
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
       }
 
-      fileListContainer.appendChild(columnsContainer)
+      // Create columns container
+      const columnsContainer = document.createElement('div');
+      columnsContainer.className = "grid";
+
+      // Create columns for each category
+      ;['CCUS', 'CCEU', 'CIS'].forEach(prefix => {
+        if (categorizedFiles[prefix].length > 0) {
+          const fieldset = document.createElement('fieldset');
+          const legend = document.createElement('legend');
+          legend.innerHTML = prefix;
+
+          const column = document.createElement('div');
+          column.className = "file-column";
+          column.style.flex = '1';
+
+          const list = document.createElement('ul');
+          list.style.listStyleType = 'none';
+          list.style.padding = '0';
+
+          categorizedFiles[prefix].forEach(file => {
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `/report?id=${file}`;
+            
+            // Extract the base filename without timestamp for cleaner display
+            const baseName = file.replace(/\d{14}$/, '').replace(/_$/, '');
+            link.textContent = file;
+            
+            // Add the formatted date in parentheses
+            const dateSpan = document.createElement('span');
+            dateSpan.textContent = ` (${formatFileDate(file)})`;
+            dateSpan.style.color = '#666';
+            dateSpan.style.fontSize = '0.9em';
+            
+            listItem.appendChild(link);
+            listItem.appendChild(dateSpan);
+            list.appendChild(listItem);
+          });
+
+          column.appendChild(list);
+          fieldset.appendChild(legend);
+          fieldset.appendChild(column);
+          columnsContainer.appendChild(fieldset);
+        }
+      });
+
+      fileListContainer.appendChild(columnsContainer);
     })
     .catch(error => {
-      console.error('Error fetching directory listing:', error)
+      console.error('Error fetching directory listing:', error);
       document.getElementById('file-list').innerHTML =
-        '<div>Failed to load directory listing.</div>'
-    })
+        '<div>Failed to load directory listing.</div>';
+    });
 }
 
 async function tlsChecker (element) {
@@ -618,6 +658,7 @@ async function tlsChecker (element) {
 
   const tlsModal = document.getElementById('tlsModal')
   const tlsmodalContainer = document.getElementById('tlsmodalContainer')
+  const checkTitle = document.getElementById("check_title")
 
   tls_div.innerHTML = ''
   tlsModal.style.display = 'none'
@@ -646,6 +687,8 @@ async function tlsChecker (element) {
       // Replace all images with SVGs
       replaceCertificateIcons(tls_div)
       JsLoadingOverlay.hide()
+      checkTitle.textContent  = "OCSP Check"
+
       tlsModal.style.display = 'block'
       tlsmodalContainer.style.display = 'block'
 
@@ -676,6 +719,7 @@ async function tlsChecker (element) {
         // Replace all images with SVGs
         replaceCertificateIcons(tls_div)
         JsLoadingOverlay.hide()
+        checkTitle.textContent = "TLS/OCSP Check"
 
         tlsModal.style.display = 'block'
         tlsmodalContainer.style.display = 'block'
@@ -742,7 +786,7 @@ function replaceCertificateIcons (container) {
 
 
 
-// Reset function for clearing scheduling queue - mainly used for testing 
+// Reset function for clearing scheduling queue
 function clearOutput () {
   fetch('/reset')
 }
@@ -879,3 +923,13 @@ window.addEventListener('click', e => {
     csrmodalContainer.style.display = 'none'
   }
 })
+
+
+var clear_pem_input = document.getElementById("clear_pem_input_button")
+
+clear_pem_input.addEventListener('click', () => {
+  document.getElementById('pem_input').value = "";
+
+})
+
+
